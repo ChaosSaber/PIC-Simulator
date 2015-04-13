@@ -294,6 +294,7 @@ namespace PIC_Simulator
 
         /*
          * TODO
+         * GPR-Mapping mit den SFR-Registern ergänzen
          */ 
         
         /*************************************************************************************************************/
@@ -410,7 +411,7 @@ namespace PIC_Simulator
 
         /***************/
         //TODO 
-        //Statusbits DC, C?
+        //Statusbits DC hinzufügen
         //WDT
         //WDT prescaler
 
@@ -432,7 +433,7 @@ namespace PIC_Simulator
             speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status) 
                 Z_Flag(ergebnis);
-            //Status C?,DC
+            //TODO DC
             PC_erhöhen();
         }
 
@@ -564,7 +565,7 @@ namespace PIC_Simulator
             PC_erhöhen();
             return;//tue nichts
         }
-        //wenn Status register nicht gemapped dann Carry ändern
+       
         public void rlf(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x007F;
@@ -581,7 +582,7 @@ namespace PIC_Simulator
             speichern(adresse, d, ergebnis);
             PC_erhöhen();
         }
-        //wenn Status register nicht gemapped dann Carry änderns
+        
         public void rrf(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x007F;
@@ -613,7 +614,7 @@ namespace PIC_Simulator
             speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
                 Z_Flag(ergebnis);
-            //Status C?,DC
+            //TODO DC
             PC_erhöhen();
         }
 
@@ -692,7 +693,7 @@ namespace PIC_Simulator
                 Carry_löschen();
             w_register = (Byte)temp;
             Z_Flag(w_register);
-            //Status C?, DC
+            //TODO DC
             PC_erhöhen();
         }
 
@@ -709,10 +710,10 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
             TOS.Add(PC_ausgeben() + 1);//PC + 1 -> TOS
             PC_setzen(adresse);//literal -> PC<10:0>
-            PCH|=(Byte)(Speicher[Register.pclath]&0x18);//PCLATH<4:3> -> PC<12:11> 
+            PCH |= (Byte)(Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
             //2-cycle Instruction
         }
-        //wenn Statusregister gemapped wird, überarbeiten
+        
         public void clrwdt(int codezeile)
         {
             //WDT=0;
@@ -721,7 +722,7 @@ namespace PIC_Simulator
             Speicher[Register.status] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
             PC_erhöhen();
         }
-        //wenn PCLATH nicht gemapped wird, überarbeiten
+        
         public void _goto(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
@@ -743,7 +744,7 @@ namespace PIC_Simulator
             w_register = (Byte)literal;
             PC_erhöhen();
         }
-        //wenn INTCON nicht gemapped wird, überarbeiten
+        
         public void retfie(int codezeile)
         {
             //return from interrupt;
@@ -768,7 +769,7 @@ namespace PIC_Simulator
             TOS.Remove(TOS.Count - 1);//letzten Eintrag entfernen
             //this is a two-cycle instruction
         }
-        //wenn Statusregister nicht gemapped wird, überarbeiten
+       
         public void sleep(int codezeile)
         {
             //The processor is put into SLEEP-mode with the oscillator stopped.
@@ -784,13 +785,13 @@ namespace PIC_Simulator
         {
             int literal = Befehle[codezeile] & 0x00FF;
             int temp = literal - w_register;
-            if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
+            if (temp <= 0)//wenn das Ergebnis<=0 dann lösche das Carrybit, ansonsten setze es
                 Carry_löschen();
             else
                 Carry_setzen();
             w_register = (Byte)temp;
             Z_Flag(w_register);
-            //Status C?, DC
+            //TODO DC
             PC_erhöhen();
         }
 
