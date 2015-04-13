@@ -21,6 +21,7 @@ using System.IO;
  * irgendwas mit TRISA und TRISB
  * TOS enthält 8 Werte, wird ein neunter hinzugefügt fällt der erste raus.
  * Nur LST-Formate unterstützen, bei Eingabe über cmd. hinzufügen
+ * Überprüfe ob Startspeicherzustand korrekt ist (Bank 1 / Bank 0)
  */
 
 
@@ -433,7 +434,6 @@ namespace PIC_Simulator
 
         /***************/
         //TODO Statusbits DC, C?
-        //Wenn das Statusregister das Ziel ist, wird Z,DC,C nicht beeinflusst
         //WDT
         //WDT prescaler
 
@@ -628,10 +628,10 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
             int temp = Speicher[adresse] - w_register;
-            if (temp < 0)//wenn das Ergebnis<0 dann setze das Carrybit, ansonsten lösche es
-                Carry_setzen();
-            else
+            if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
                 Carry_löschen();
+            else
+                Carry_setzen();
             Byte ergebnis = (Byte)temp;
             speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
@@ -646,7 +646,7 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
             Byte ergebnis = (Byte)((Speicher[adresse] & 0xF0)>>4);//Bit(7-4) maskieren und auf Position 3-0 verschieben
-            ergebnis |= (Byte)((Befehle[adresse] & 0x0F) << 4);//Bit(3-0) maskieren und auf Position 7-4 verschieben sowie mit vorherigen Schritt verodern
+            ergebnis |= (Byte)((Speicher[adresse] & 0x0F) << 4);//Bit(3-0) maskieren und auf Position 7-4 verschieben sowie mit vorherigen Schritt verodern
             speichern(adresse, d, ergebnis);
             PC_erhöhen();
         }
@@ -818,10 +818,10 @@ namespace PIC_Simulator
         {
             int literal = Befehle[codezeile] & 0x00FF;
             int temp = literal - w_register;
-            if (temp < 0)//wenn das Ergebnis<0 dann setze das Carrybit, ansonsten lösche es
-                Carry_setzen();
-            else
+            if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
                 Carry_löschen();
+            else
+                Carry_setzen();
             w_register = (Byte)temp;
             Z_Flag(w_register);
             //Status C?, DC
