@@ -59,10 +59,10 @@
             // richTextBox1
             // 
             this.richTextBox1.Font = new System.Drawing.Font("Courier New", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBox1.Location = new System.Drawing.Point(636, 338);
-            this.richTextBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.richTextBox1.Location = new System.Drawing.Point(514, 312);
+            this.richTextBox1.Margin = new System.Windows.Forms.Padding(4);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(880, 457);
+            this.richTextBox1.Size = new System.Drawing.Size(1230, 457);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
             this.richTextBox1.WordWrap = false;
@@ -92,14 +92,14 @@
             // ladenToolStripMenuItem
             // 
             this.ladenToolStripMenuItem.Name = "ladenToolStripMenuItem";
-            this.ladenToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
+            this.ladenToolStripMenuItem.Size = new System.Drawing.Size(139, 24);
             this.ladenToolStripMenuItem.Text = "laden";
             this.ladenToolStripMenuItem.Click += new System.EventHandler(this.ladenToolStripMenuItem_Click);
             // 
             // schließenToolStripMenuItem
             // 
             this.schließenToolStripMenuItem.Name = "schließenToolStripMenuItem";
-            this.schließenToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
+            this.schließenToolStripMenuItem.Size = new System.Drawing.Size(139, 24);
             this.schließenToolStripMenuItem.Text = "schließen";
             this.schließenToolStripMenuItem.Click += new System.EventHandler(this.schließenToolStripMenuItem_Click);
             // 
@@ -111,7 +111,7 @@
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(1581, 233);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(100, 28);
             this.button1.TabIndex = 2;
@@ -137,7 +137,7 @@
             this.Spalte6,
             this.Spalte7});
             this.dataGridView1.Location = new System.Drawing.Point(16, 52);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersWidth = 25;
@@ -294,18 +294,19 @@
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Location = new System.Drawing.Point(16, 368);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox1.Size = new System.Drawing.Size(267, 256);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Speziaöfunktionsregister";
+            this.groupBox1.Text = "Spezialfunktionsregister";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(1865, 811);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.dataGridView1);
@@ -313,7 +314,7 @@
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "PIC Simulator";
             this.Load += new System.EventHandler(this.Form1_Load);
