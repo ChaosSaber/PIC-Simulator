@@ -20,7 +20,6 @@ using System.IO;
  */
 
 /* TODO René
- * TOS enthält 8 Werte, wird ein neunter hinzugefügt fällt der erste raus.
  * Nur LST-Formate unterstützen, bei Eingabe über cmd. hinzufügen
  * Programmausgabe datagrid,Register
  * Interrupts
@@ -156,7 +155,15 @@ namespace PIC_Simulator
             foreach (string arg in Environment.GetCommandLineArgs())
             {
                 if (i == 1)
-                    laden(arg);
+                {
+                    char[] temp = arg.ToCharArray();
+                    int laenge=temp.Length;
+                    //prüft ob die angegebene Datei eine LST-Datei ist
+                    if (temp[laenge - 4] == '.' && (temp[laenge - 3] == 'L' || temp[laenge - 3] == 'l') && (temp[laenge - 2] == 'S' || temp[laenge - 2] == 's') && (temp[laenge - 1] == 'T' || temp[laenge - 1] == 't'))
+                        laden(arg);
+                    else
+                        MessageBox.Show("Bitte geben sie eine LST-Datei an");
+                } 
                 i++;
             }
             //dataGridView1.DataSource = Speicher_String.ToList(); herasufinden wie funktioniert
