@@ -349,17 +349,24 @@ namespace PIC_Simulator
             bit_löschen(Register.status + 0x80, Bits.DC);
             bit_löschen(Register.status, Bits.DC);
         }
-        public void GPR_mapping(int adresse)
+        public void Speicher_mapping(int adresse)
         {
             //GPR 0CH-4FH und 8CH-CFH
             //The GPR addresses in Bank 1 are mapped to addresses in Bank 0. 
             //As an example, addressing location 0Ch or 8Ch will access the same GPR.
-            if (adresse > 0xB && adresse < 0x50)
+            /*SFR die gemapped werden
+             * PCL (2)
+             * Status (3)
+             * FSR (4)
+             * PCLATH (AH)
+             * INTCON (BH)
+             */
+            if (adresse > 0xB && adresse < 0x50 || adresse >= 2 && adresse <= 4 || adresse == 0xA || adresse == 0xB) 
             {
                 Speicher[adresse + 0x80] = Speicher[adresse];
                 return;
             }
-            if (adresse > 0x8B && adresse < 0xD0)
+            if (adresse > 0x8B && adresse < 0xD0 || adresse >= 0x82 && adresse <= 0x84 || adresse == 0x8A || adresse == 0x8B)
                 Speicher[adresse - 0x80] = Speicher[adresse];
         }
         public void speichern(int adresse,int d, Byte ergebnis)
@@ -368,7 +375,7 @@ namespace PIC_Simulator
             if (d > 0)
             {
                 Speicher[adresse] = ergebnis;
-                GPR_mapping(adresse);
+                Speicher_mapping(adresse);
             }
             else
                 w_register = ergebnis;
@@ -470,7 +477,7 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             Speicher[adresse] = 0;
-            GPR_mapping(adresse);
+            Speicher_mapping(adresse);
             if (adresse % 0x80 != Register.status) 
                 Z_Flag(Speicher[adresse]);
             PC_erhöhen();
@@ -572,7 +579,7 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             Speicher[adresse] = w_register;
-            GPR_mapping(adresse);
+            Speicher_mapping(adresse);
             PC_erhöhen();
         }
 
