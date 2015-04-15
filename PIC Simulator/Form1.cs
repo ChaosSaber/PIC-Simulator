@@ -35,7 +35,6 @@ using System.IO;
  */
 
 
-
 namespace PIC_Simulator
 {
     delegate void BEFEHLSFUNKTIONEN(int codezeile); //Zeiger auf die Befehlsfunktionen
@@ -46,7 +45,7 @@ namespace PIC_Simulator
         public int[] codezeile; //Zeilenummern die verwertbaren Code enthalten; beginnen im Dokument mit 1 anstatt 0, dashalb bei Ausgabe +1 addieren
         public int[] Befehle;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
         public Byte[] Speicher = new Byte[256];//Registerspeicher
-        public String[] Speicher_String = new String[256];//enthält den Speicher als Stringwert, noch nicht implementiert;new string[32][8]
+        public String[] Speicher_String = new String[256];//enthält den Speicher als Stringwert, noch nicht implementiert
         public Byte w_register;
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
         List<int> TOS = new List<int>(); //Top of Stack Liste; FiLo-Liste
@@ -56,7 +55,6 @@ namespace PIC_Simulator
 
         public void übernimm_Speicher_String()//noch nicht genutz, wahrscheinlich für Speicherausgabe
         {
-            //TODO auf neuen String umschreiben; Umwandlung hex
             for (int i = 0; i < 256; i++)
                 Speicher_String[i] = Speicher[i].ToString();
         }
@@ -159,8 +157,7 @@ namespace PIC_Simulator
                     laden(arg);
                 i++;
             }
-            übernimm_Speicher_String();
-            dataGridView1.DataSource = Speicher_String.ToList();// herasufinden wie funktioniert
+            //dataGridView1.DataSource = Speicher_String.ToList(); herasufinden wie funktioniert
          
             //Array der Befehlsfunktionen initialisieren
             Befehlsfunktionen[0]=addwf;
@@ -307,6 +304,7 @@ namespace PIC_Simulator
 
         /*
          * TODO
+         * GPR-Mapping mit den SFR-Registern ergänzen
          */ 
         
         /*************************************************************************************************************/
@@ -320,45 +318,33 @@ namespace PIC_Simulator
         }
         public void Z_Flag_setzen()
         {
-            if (Bank1())
-                bit_setzen(Register.status + 0x80, Bits.Z);
-            else
-                bit_setzen(Register.status, Bits.Z);
+            bit_setzen(Register.status + 0x80, Bits.Z);
+            bit_setzen(Register.status, Bits.Z);
         }
         public void Z_Flag_löschen()
         {
-            if (Bank1())
-                bit_löschen(Register.status + 0x80, Bits.Z);
-            else
-                bit_löschen(Register.status, Bits.Z);
+            bit_löschen(Register.status + 0x80, Bits.Z);
+            bit_löschen(Register.status, Bits.Z);
         }
         public void Carry_setzen()
         {
-            if (Bank1())
-                bit_setzen(Register.status + 0x80, Bits.C);
-            else
-                bit_setzen(Register.status, Bits.C);
+            bit_setzen(Register.status + 0x80, Bits.C);
+            bit_setzen(Register.status, Bits.C);
         }
         public void Carry_löschen()
         {
-            if (Bank1())
-                bit_löschen(Register.status + 0x80, Bits.C);
-            else
-                bit_löschen(Register.status, Bits.C);
+            bit_löschen(Register.status + 0x80, Bits.C);
+            bit_löschen(Register.status, Bits.C);
         }
         public void Digitcarry_setzen()
         {
-            if (Bank1())
-                bit_setzen(Register.status + 0x80, Bits.DC);
-            else
-                bit_setzen(Register.status, Bits.DC);
+            bit_setzen(Register.status + 0x80, Bits.DC);
+            bit_setzen(Register.status, Bits.DC);
         }
         public void Digitcarry_löschen()
         {
-            if (Bank1())
-                bit_löschen(Register.status + 0x80, Bits.DC);
-            else
-                bit_löschen(Register.status, Bits.DC);
+            bit_löschen(Register.status + 0x80, Bits.DC);
+            bit_löschen(Register.status, Bits.DC);
         }
         public void GPR_mapping(int adresse)
         {
@@ -398,29 +384,19 @@ namespace PIC_Simulator
         }
         public void PC_setzen(int Wert)
         {
-            if (Bank1())
-                Speicher[Register.pcl + 0x80] = (Byte)(Wert & 0xFF);
-            else
-                Speicher[Register.pcl] = (Byte)(Wert & 0xFF);
+            Speicher[Register.pcl + 0x80] = (Byte)(Wert & 0xFF);
+            Speicher[Register.pcl] = (Byte)(Wert & 0xFF);
             PCH = (Byte)((Wert & 0x1F00) >> 8);
         }
         public int PC_ausgeben()
         {
-            if (Bank1())
-                return (PCH << 8) + Speicher[Register.pcl + 0x80];
-            else
-                return (PCH << 8) + Speicher[Register.pcl];
+            return (PCH << 8) + Speicher[Register.pcl];
         }
         public void PC_erhöhen()//PC um 1 erhöhen
         {
-            if (Bank1())
-            {
-                if ((Speicher[Register.pcl + 0x80] += 1) == 0)
+            if ((Speicher[Register.pcl + 0x80] += 1) == 0)
                     PCH++;
-            }
-            else
-                if ((Speicher[Register.pcl] += 1) == 0)
-                    PCH++;
+            Speicher[Register.pcl] += 1;
         }
         public int adressänderungen(ref int adresse)
         {
@@ -431,8 +407,6 @@ namespace PIC_Simulator
             //an die Registerstelle gespeichert, die das FSR-Register(4 oder 84H bei Bank 1) enthält
             if (adresse == 0)
                 adresse = Speicher[Register.fsr];
-            else if (adresse == 0x80)
-                adresse = Speicher[Register.fsr + 0x80];
             return adresse;
         }
         public Boolean Bank1()
@@ -446,7 +420,8 @@ namespace PIC_Simulator
             //IRP=7;RP1=6;RP0=5;TO(quer)=4;PD(quer)=3;Z=2;DC=1;C=0
 
         /***************/
-        //TODO Statusbits DC, C?
+        //TODO 
+        //Statusbits DC hinzufügen
         //WDT
         //WDT prescaler
 
@@ -468,7 +443,7 @@ namespace PIC_Simulator
             speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status) 
                 Z_Flag(ergebnis);
-            //Status C?,DC
+            //TODO DC
             PC_erhöhen();
         }
 
@@ -600,7 +575,7 @@ namespace PIC_Simulator
             PC_erhöhen();
             return;//tue nichts
         }
-        //wenn Status register nicht gemapped dann Carry ändern
+       
         public void rlf(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x007F;
@@ -617,7 +592,7 @@ namespace PIC_Simulator
             speichern(adresse, d, ergebnis);
             PC_erhöhen();
         }
-        //wenn Status register nicht gemapped dann Carry änderns
+        
         public void rrf(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x007F;
@@ -649,7 +624,7 @@ namespace PIC_Simulator
             speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
                 Z_Flag(ergebnis);
-            //Status C?,DC
+            //TODO DC
             PC_erhöhen();
         }
 
@@ -728,7 +703,7 @@ namespace PIC_Simulator
                 Carry_löschen();
             w_register = (Byte)temp;
             Z_Flag(w_register);
-            //Status C?, DC
+            //TODO DC
             PC_erhöhen();
         }
 
@@ -745,21 +720,19 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
             TOS.Add(PC_ausgeben() + 1);//PC + 1 -> TOS
             PC_setzen(adresse);//literal -> PC<10:0>
-            PCH|=(Byte)(Speicher[Register.pclath]&0x18);//PCLATH<4:3> -> PC<12:11> 
+            PCH |= (Byte)(Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
             //2-cycle Instruction
         }
-        //wenn Statusregister gemapped wird, überarbeiten
+        
         public void clrwdt(int codezeile)
         {
             //WDT=0;
             //WDT prescaler=0;
-            if (Bank1())
-                Speicher[Register.status + 0x80] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
-            else
-                Speicher[Register.status] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
+            Speicher[Register.status + 0x80] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
+            Speicher[Register.status] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
             PC_erhöhen();
         }
-        //wenn PCLATH nicht gemapped wird, überarbeiten
+        
         public void _goto(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
@@ -781,16 +754,14 @@ namespace PIC_Simulator
             w_register = (Byte)literal;
             PC_erhöhen();
         }
-        //wenn INTCON nicht gemapped wird, überarbeiten
+        
         public void retfie(int codezeile)
         {
             //return from interrupt;
             PC_setzen(TOS[TOS.Count - 1]);//TOS -> PC
             TOS.Remove(TOS.Count - 1);//letzten Eintrag entfernen
-            if (Bank1())
-                bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
-            else
-                bit_setzen(Register.intcon, Bits.gie);
+            bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
+            bit_setzen(Register.intcon, Bits.gie);
         }
 
         public void retlw(int codezeile)
@@ -808,36 +779,29 @@ namespace PIC_Simulator
             TOS.Remove(TOS.Count - 1);//letzten Eintrag entfernen
             //this is a two-cycle instruction
         }
-        //wenn Statusregister nicht gemapped wird, überarbeiten
+       
         public void sleep(int codezeile)
         {
             //The processor is put into SLEEP-mode with the oscillator stopped.
             //0 -> WDT
             //0 -> WDT prescaler
-            if(Bank1())
-            {
-                bit_setzen(Register.status + 0x80, Bits.to);//TO-Bit(4) im Statusregister setzen
-                bit_löschen(Register.status + 0x80, Bits.pd);//PD-Bit(3) im Statusregister löschen
-            }
-            else
-            {
-                bit_setzen(Register.status, Bits.to);//TO-Bit(4) im Statusregister setzen
-                bit_löschen(Register.status, Bits.pd);//PD-Bit(3) im Statusregister löschen
-            }
-            
+            bit_setzen(Register.status + 0x80, Bits.to);//TO-Bit(4) im Statusregister setzen
+            bit_setzen(Register.status, Bits.to);//TO-Bit(4) im Statusregister setzen
+            bit_löschen(Register.status + 0x80, Bits.pd);//PD-Bit(3) im Statusregister löschen
+            bit_löschen(Register.status, Bits.pd);//PD-Bit(3) im Statusregister löschen            
         }
 
         public void sublw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
             int temp = literal - w_register;
-            if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
+            if (temp <= 0)//wenn das Ergebnis<=0 dann lösche das Carrybit, ansonsten setze es
                 Carry_löschen();
             else
                 Carry_setzen();
             w_register = (Byte)temp;
             Z_Flag(w_register);
-            //Status C?, DC
+            //TODO DC
             PC_erhöhen();
         }
 
