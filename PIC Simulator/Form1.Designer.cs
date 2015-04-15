@@ -146,7 +146,7 @@
             this.dataGridView1.RowHeadersWidth = 25;
             this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(243, 236);
+            this.dataGridView1.Size = new System.Drawing.Size(246, 236);
             this.dataGridView1.TabIndex = 3;
             // 
             // Spalte0
@@ -310,7 +310,7 @@
             this.Breakpoint,
             this.Codetext});
             this.dataGridView2.Location = new System.Drawing.Point(386, 254);
-            this.dataGridView2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dataGridView2.Margin = new System.Windows.Forms.Padding(2);
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.ReadOnly = true;
             this.dataGridView2.RowHeadersVisible = false;

@@ -20,7 +20,7 @@ using System.IO;
  */
 
 /* TODO René
- * Programmausgabe datagrid,Register
+ * Registerausgabe Spaltennamen
  * Interrupts
  */
 
@@ -45,7 +45,6 @@ namespace PIC_Simulator
         public int[] codezeile; //Zeilenummern die verwertbaren Code enthalten; beginnen im Dokument mit 1 anstatt 0, dashalb bei Ausgabe +1 addieren
         public int[] Befehle;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
         public Byte[] Speicher = new Byte[256];//Registerspeicher
-        public String[] Speicher_String = new String[256];//enthält den Speicher als Stringwert, noch nicht implementiert
         public Byte w_register;
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
         List<int> TOS = new List<int>(); //Top of Stack Liste; FiLo-Liste
@@ -53,11 +52,7 @@ namespace PIC_Simulator
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
-        public void übernimm_Speicher_String()//noch nicht genutz, wahrscheinlich für Speicherausgabe
-        {
-            for (int i = 0; i < 256; i++)
-                Speicher_String[i] = Speicher[i].ToString();
-        }
+        
 
         public Form1()
         {
@@ -119,7 +114,21 @@ namespace PIC_Simulator
             lade_Speicher_Startzustand();
             TOS = new List<int>();
             Code_anzeigen();
+            Speicher_grid_anzeigen();
+        }
 
+        //zeigt die Register in einem DataGridView an
+        public void Speicher_grid_anzeigen()
+        {
+            dataGridView1.RowCount = 32;//32 Zeilen à 8 Register/Byte = 256/FFH Register
+            for (int i = 0; i < 256; i++)
+                dataGridView1[i % 8, i / 8].Value = Speicher[i].ToString("X2");
+        }
+
+        //aktuallisiert ein Speicherregister im DataGridView
+        public void Speicher_grid_updaten(int adresse)
+        {
+            dataGridView1[adresse % 8, adresse / 8].Value = Speicher[adresse].ToString("X2");
         }
 
         public void Code_anzeigen()
@@ -183,7 +192,7 @@ namespace PIC_Simulator
                 } 
                 i++;
             }
-            //dataGridView1.DataSource = Speicher_String.ToList(); herasufinden wie funktioniert
+            Speicher_grid_anzeigen();
          
             //Array der Befehlsfunktionen initialisieren
             Befehlsfunktionen[0]=addwf;
@@ -916,7 +925,6 @@ namespace PIC_Simulator
             Speicher[0] = 30;
             Speicher[1] = 200;
             Speicher[9] = 0xF0;
-            übernimm_Speicher_String();
         }
         public void test_speicher()
         {
