@@ -12,17 +12,28 @@ using System.IO;
 /********************************************/
 /*
  * TODO
- * Ausgabe des Speichers/Register
- * Statusbits DC, C?
- * WDT
- * WDT prescaler
- * PCH-Register, wo ist das gespeichert?
- * Interrupt
+ * WDT (Z)
+ * WDT prescaler (Z)
  * irgendwas mit TRISA und TRISB
+ * externer / interner Takt am TMR0-Pin incl. Vorteiler
+ * EEPROM Funktionen (Z)
+ */
+
+/* TODO René
  * TOS enthält 8 Werte, wird ein neunter hinzugefügt fällt der erste raus.
  * Nur LST-Formate unterstützen, bei Eingabe über cmd. hinzufügen
  * Überprüfe ob Startspeicherzustand korrekt ist (Bank 1 / Bank 0)
+ * Programmausgabe datagrid,Register
+ * Interrupts
  */
+
+/* TODO Felix
+ * graphischen Kram
+ * Breakpoints
+ * Buutons Start/Stop/reset/step
+ * laufzeitzähler
+ */
+
 
 
 namespace PIC_Simulator
@@ -35,7 +46,7 @@ namespace PIC_Simulator
         public int[] codezeile; //Zeilenummern die verwertbaren Code enthalten; beginnen im Dokument mit 1 anstatt 0, dashalb bei Ausgabe +1 addieren
         public int[] Befehle;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
         public Byte[] Speicher = new Byte[256];//Registerspeicher
-        public String[] Speicher_String = new String[256];//enthält den Speicher als Stringwert, noch nicht implementiert
+        public String[] Speicher_String = new String[256];//enthält den Speicher als Stringwert, noch nicht implementiert;new string[32][8]
         public Byte w_register;
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
         List<int> TOS = new List<int>(); //Top of Stack Liste; FiLo-Liste
@@ -45,6 +56,7 @@ namespace PIC_Simulator
 
         public void übernimm_Speicher_String()//noch nicht genutz, wahrscheinlich für Speicherausgabe
         {
+            //TODO auf neuen String umschreiben; Umwandlung hex
             for (int i = 0; i < 256; i++)
                 Speicher_String[i] = Speicher[i].ToString();
         }
@@ -147,7 +159,8 @@ namespace PIC_Simulator
                     laden(arg);
                 i++;
             }
-            //dataGridView1.DataSource = Speicher_String.ToList(); herasufinden wie funktioniert
+            übernimm_Speicher_String();
+            dataGridView1.DataSource = Speicher_String.ToList();// herasufinden wie funktioniert
          
             //Array der Befehlsfunktionen initialisieren
             Befehlsfunktionen[0]=addwf;
