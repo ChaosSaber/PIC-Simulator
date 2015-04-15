@@ -20,7 +20,6 @@ using System.IO;
  */
 
 /* TODO René
- * Nur LST-Formate unterstützen, bei Eingabe über cmd. hinzufügen
  * Programmausgabe datagrid,Register
  * Interrupts
  */
@@ -119,6 +118,24 @@ namespace PIC_Simulator
             extrahiere_codezeilen();
             lade_Speicher_Startzustand();
             TOS = new List<int>();
+            Code_anzeigen();
+
+        }
+
+        public void Code_anzeigen()
+        {
+            dataGridView2.RowCount = code.Length;
+            for(int i=0;i<code.Length;i++)
+            {
+                try
+                {
+                    dataGridView2[1, i].Value = code[i];
+                }
+                catch(Exception e)
+                {
+                    MessageBox.Show("Hups, es ist ein Fehler aufgetreten\n" + e.Message);
+                }
+            }
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)

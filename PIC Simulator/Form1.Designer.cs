@@ -54,6 +54,8 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.dataGridView2 = new System.Windows.Forms.DataGridView();
+            this.Breakpoint = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Codetext = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -298,13 +300,40 @@
             // 
             // dataGridView2
             // 
-            this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView2.AllowUserToAddRows = false;
+            this.dataGridView2.AllowUserToDeleteRows = false;
+            this.dataGridView2.AllowUserToResizeColumns = false;
+            this.dataGridView2.AllowUserToResizeRows = false;
+            this.dataGridView2.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            this.dataGridView2.ColumnHeadersVisible = false;
+            this.dataGridView2.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Breakpoint,
+            this.Codetext});
             this.dataGridView2.Location = new System.Drawing.Point(386, 254);
             this.dataGridView2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.dataGridView2.Name = "dataGridView2";
+            this.dataGridView2.ReadOnly = true;
+            this.dataGridView2.RowHeadersVisible = false;
             this.dataGridView2.RowTemplate.Height = 24;
             this.dataGridView2.Size = new System.Drawing.Size(924, 402);
             this.dataGridView2.TabIndex = 11;
+            // 
+            // Breakpoint
+            // 
+            this.Breakpoint.HeaderText = "Breakpoint";
+            this.Breakpoint.Name = "Breakpoint";
+            this.Breakpoint.ReadOnly = true;
+            this.Breakpoint.Width = 20;
+            // 
+            // Codetext
+            // 
+            this.Codetext.HeaderText = "codetext";
+            this.Codetext.MaxInputLength = 132;
+            this.Codetext.Name = "Codetext";
+            this.Codetext.ReadOnly = true;
+            this.Codetext.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.Codetext.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.Codetext.Width = 1320;
             // 
             // Form1
             // 
@@ -360,6 +389,8 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.DataGridView dataGridView2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Breakpoint;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Codetext;
     }
 }
 
