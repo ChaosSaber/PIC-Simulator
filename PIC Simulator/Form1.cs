@@ -22,7 +22,6 @@ using System.IO;
 /* TODO René
  * TOS enthält 8 Werte, wird ein neunter hinzugefügt fällt der erste raus.
  * Nur LST-Formate unterstützen, bei Eingabe über cmd. hinzufügen
- * Überprüfe ob Startspeicherzustand korrekt ist (Bank 1 / Bank 0)
  * Programmausgabe datagrid,Register
  * Interrupts
  */
@@ -423,6 +422,21 @@ namespace PIC_Simulator
         {
             return bit_gesetzt(Register.status, Bits.rp0);
         }
+        //fügt dem TOS einen Wert hinzu. wenn der TOS bereits 8 Werte enthält
+        //wird zuerst der erste gelöscht.
+        public void TOS_add(int Wert)
+        {
+            if (TOS.Count == 8)
+                TOS.Remove(0);
+            TOS.Add(Wert);
+        }
+        //gibt den zuletzt eingetragenen TOS-Wert zurück und löscht diesen dann
+        public int TOS_POP()
+        {
+            int temp = TOS[TOS.Count - 1];
+            TOS.Remove(TOS.Count - 1);
+            return temp;
+        }
         /*************************************************************************************************************/
         //Befehlsfunktionen
         //Status = Speicheradresse 3
@@ -740,7 +754,7 @@ namespace PIC_Simulator
         public void call(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
-            TOS.Add(PC_ausgeben() + 1);//PC + 1 -> TOS
+            TOS_add(PC_ausgeben() + 1);//PC + 1 -> TOS
             PC_setzen(adresse);//literal -> PC<10:0>
             PCH |= (Byte)(Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
             //2-cycle Instruction
@@ -780,8 +794,7 @@ namespace PIC_Simulator
         public void retfie(int codezeile)
         {
             //return from interrupt;
-            PC_setzen(TOS[TOS.Count - 1]);//TOS -> PC
-            TOS.Remove(TOS.Count - 1);//letzten Eintrag entfernen
+            PC_setzen(TOS_POP());//TOS -> PC
             bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
             bit_setzen(Register.intcon, Bits.gie);
         }
@@ -790,15 +803,13 @@ namespace PIC_Simulator
         {
             int literal = Befehle[codezeile] & 0x00FF;
             w_register = (Byte)literal;
-            PC_setzen(TOS[TOS.Count - 1]);//TOS -> PC
-            TOS.Remove(TOS.Count - 1);//letzten Eintrag entfernen
+            PC_setzen(TOS_POP());//TOS -> PC
         }
 
         public void _return(int codezeile)
         {
             //return from Subroutine
-            PC_setzen(TOS[TOS.Count - 1]);//TOS -> PC
-            TOS.Remove(TOS.Count - 1);//letzten Eintrag entfernen
+            PC_setzen(TOS_POP());//TOS -> PC
             //this is a two-cycle instruction
         }
        
