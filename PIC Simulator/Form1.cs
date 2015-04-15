@@ -35,6 +35,9 @@ using System.IO;
  */
 
 
+
+
+//test
 namespace PIC_Simulator
 {
     delegate void BEFEHLSFUNKTIONEN(int codezeile); //Zeiger auf die Befehlsfunktionen
@@ -437,13 +440,16 @@ namespace PIC_Simulator
                     Carry_setzen();
                 else
                     Carry_löschen();
+                if ((Speicher[adresse] & 0xF + w_register & 0xF) > 15)
+                    Digitcarry_setzen();
+                else
+                    Digitcarry_löschen();
             }
             
             Byte ergebnis = (Byte)temp;
             speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status) 
                 Z_Flag(ergebnis);
-            //TODO DC
             PC_erhöhen();
         }
 
@@ -616,15 +622,21 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
             int temp = Speicher[adresse] - w_register;
-            if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
-                Carry_löschen();
-            else
-                Carry_setzen();
+            if (adresse % 0x80 != Register.status)
+            {
+                if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
+                    Carry_löschen();
+                else
+                    Carry_setzen();
+                if ((Speicher[adresse] & 0xF - w_register & 0xF) <= 0)
+                    Digitcarry_setzen();
+                else
+                    Digitcarry_löschen();
+            }
             Byte ergebnis = (Byte)temp;
             speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
                 Z_Flag(ergebnis);
-            //TODO DC
             PC_erhöhen();
         }
 
@@ -701,9 +713,12 @@ namespace PIC_Simulator
                 Carry_setzen();
             else
                 Carry_löschen();
+            if ((literal & 0xF + w_register & 0xF) > 15)
+                Digitcarry_setzen();
+            else
+                Digitcarry_löschen();
             w_register = (Byte)temp;
             Z_Flag(w_register);
-            //TODO DC
             PC_erhöhen();
         }
 
@@ -799,9 +814,12 @@ namespace PIC_Simulator
                 Carry_löschen();
             else
                 Carry_setzen();
+            if ((literal & 0xF - w_register & 0xF) <=0)
+                Digitcarry_setzen();
+            else
+                Digitcarry_löschen();
             w_register = (Byte)temp;
             Z_Flag(w_register);
-            //TODO DC
             PC_erhöhen();
         }
 
