@@ -21,7 +21,9 @@ using System.IO;
 
 /* TODO René
  * Registerausgabe Spaltennamen
+ * Speicher_grid_update zu den Befehlsfunktionen hinzufügen
  * Interrupts
+ * bei bsf, bcf, wegen Speichermapping überprüfen ob dort bereits hinzugefügt.
  */
 
 /* TODO Felix
@@ -260,10 +262,10 @@ namespace PIC_Simulator
             //test_codezeilen_erkennen();
             //test_laenge_short();
             //test_parser();
-            //test_datagrid();
+            test_datagrid();
             //test_speicher();
             //test_liste();
-            test_Simulation();
+            //test_Simulation();
         }
 
 
@@ -396,10 +398,12 @@ namespace PIC_Simulator
             if (adresse > 0xB && adresse < 0x50 || adresse >= 2 && adresse <= 4 || adresse == 0xA || adresse == 0xB) 
             {
                 Speicher[adresse + 0x80] = Speicher[adresse];
+                Speicher_grid_updaten(adresse + 0x80);
                 return;
             }
             if (adresse > 0x8B && adresse < 0xD0 || adresse >= 0x82 && adresse <= 0x84 || adresse == 0x8A || adresse == 0x8B)
                 Speicher[adresse - 0x80] = Speicher[adresse];
+            Speicher_grid_updaten(adresse - 0x80);
         }
         public void speichern(int adresse,int d, Byte ergebnis)
         {
@@ -407,6 +411,7 @@ namespace PIC_Simulator
             if (d > 0)
             {
                 Speicher[adresse] = ergebnis;
+                Speicher_grid_updaten(adresse);
                 Speicher_mapping(adresse);
             }
             else
@@ -415,10 +420,12 @@ namespace PIC_Simulator
         public void bit_setzen(int register,int Bit)
         {
             Speicher[register] = (Byte)(Speicher[register] | (1 << Bit));
+            Speicher_grid_updaten(register);
         }
         public void bit_löschen(int register, int Bit)
         {
             Speicher[register] = (Byte)(Speicher[register] & ~(1 << Bit));
+            Speicher_grid_updaten(register);
         }
         public Boolean bit_gesetzt(int register, int Bit)
         {
@@ -429,6 +436,8 @@ namespace PIC_Simulator
             Speicher[Register.pcl + 0x80] = (Byte)(Wert & 0xFF);
             Speicher[Register.pcl] = (Byte)(Wert & 0xFF);
             PCH = (Byte)((Wert & 0x1F00) >> 8);
+            Speicher_grid_updaten(Register.pcl);
+            Speicher_grid_updaten(Register.pcl + 0x80);
         }
         public int PC_ausgeben()
         {
@@ -439,6 +448,8 @@ namespace PIC_Simulator
             if ((Speicher[Register.pcl + 0x80] += 1) == 0)
                     PCH++;
             Speicher[Register.pcl] += 1;
+            Speicher_grid_updaten(Register.pcl);
+            Speicher_grid_updaten(Register.pcl + 0x80);
         }
         public int adressänderungen(ref int adresse)
         {
@@ -447,7 +458,7 @@ namespace PIC_Simulator
                 adresse += 0x80;
             //wenn die Zieladresse das INDF-Register(0 oder 80H bei Bank 1) ist, dann wird anstelle des Registers 0/80H
             //an die Registerstelle gespeichert, die das FSR-Register(4 oder 84H bei Bank 1) enthält
-            if (adresse == 0)
+            if (adresse % 0x80 == 0)
                 adresse = Speicher[Register.fsr];
             return adresse;
         }
@@ -626,6 +637,7 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             Speicher[adresse] = w_register;
+            Speicher_grid_updaten(adresse);
             Speicher_mapping(adresse);
             PC_erhöhen();
         }
@@ -724,6 +736,7 @@ namespace PIC_Simulator
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
             bit_löschen(adresse, bitnummer);
+            Speicher_mapping(adresse);
             PC_erhöhen();
         }
 
@@ -734,6 +747,7 @@ namespace PIC_Simulator
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
             bit_setzen(adresse, bitnummer);
+            Speicher_mapping(adresse);
             PC_erhöhen();
         }
 
@@ -925,6 +939,9 @@ namespace PIC_Simulator
             Speicher[0] = 30;
             Speicher[1] = 200;
             Speicher[9] = 0xF0;
+            Speicher_grid_updaten(0);
+            Speicher_grid_updaten(1);
+            Speicher_grid_updaten(9);
         }
         public void test_speicher()
         {
