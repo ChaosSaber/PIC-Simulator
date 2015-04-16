@@ -143,11 +143,15 @@
             this.dataGridView1.Location = new System.Drawing.Point(12, 42);
             this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowHeadersWidth = 25;
             this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            this.dataGridView1.RowTemplate.ReadOnly = true;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(246, 236);
             this.dataGridView1.TabIndex = 3;
+            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
+            this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             // 
             // Spalte0
             // 
@@ -155,6 +159,7 @@
             this.Spalte0.HeaderText = "00";
             this.Spalte0.MaxInputLength = 2;
             this.Spalte0.Name = "Spalte0";
+            this.Spalte0.ReadOnly = true;
             this.Spalte0.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte0.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte0.Width = 25;
@@ -165,6 +170,7 @@
             this.Spalte1.HeaderText = "01";
             this.Spalte1.MaxInputLength = 2;
             this.Spalte1.Name = "Spalte1";
+            this.Spalte1.ReadOnly = true;
             this.Spalte1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte1.Width = 25;
@@ -175,6 +181,7 @@
             this.Spalte2.HeaderText = "02";
             this.Spalte2.MaxInputLength = 2;
             this.Spalte2.Name = "Spalte2";
+            this.Spalte2.ReadOnly = true;
             this.Spalte2.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte2.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte2.Width = 25;
@@ -185,6 +192,7 @@
             this.Spalte3.HeaderText = "03";
             this.Spalte3.MaxInputLength = 2;
             this.Spalte3.Name = "Spalte3";
+            this.Spalte3.ReadOnly = true;
             this.Spalte3.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte3.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte3.Width = 25;
@@ -195,6 +203,7 @@
             this.Spalte4.HeaderText = "04";
             this.Spalte4.MaxInputLength = 2;
             this.Spalte4.Name = "Spalte4";
+            this.Spalte4.ReadOnly = true;
             this.Spalte4.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte4.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte4.Width = 25;
@@ -205,6 +214,7 @@
             this.Spalte5.HeaderText = "05";
             this.Spalte5.MaxInputLength = 2;
             this.Spalte5.Name = "Spalte5";
+            this.Spalte5.ReadOnly = true;
             this.Spalte5.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte5.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte5.Width = 25;
@@ -215,6 +225,7 @@
             this.Spalte6.HeaderText = "06";
             this.Spalte6.MaxInputLength = 2;
             this.Spalte6.Name = "Spalte6";
+            this.Spalte6.ReadOnly = true;
             this.Spalte6.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte6.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte6.Width = 25;
@@ -225,6 +236,7 @@
             this.Spalte7.HeaderText = "07";
             this.Spalte7.MaxInputLength = 2;
             this.Spalte7.Name = "Spalte7";
+            this.Spalte7.ReadOnly = true;
             this.Spalte7.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte7.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Spalte7.Width = 25;

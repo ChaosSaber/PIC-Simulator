@@ -21,9 +21,7 @@ using System.IO;
 
 /* TODO René
  * Registerausgabe Spaltennamen
- * Speicher_grid_update zu den Befehlsfunktionen hinzufügen
  * Interrupts
- * bei bsf, bcf, wegen Speichermapping überprüfen ob dort bereits hinzugefügt.
  */
 
 /* TODO Felix
@@ -123,6 +121,8 @@ namespace PIC_Simulator
         public void Speicher_grid_anzeigen()
         {
             dataGridView1.RowCount = 32;//32 Zeilen à 8 Register/Byte = 256/FFH Register
+            for (int i = 0; i < 32; i++)
+                dataGridView1.Rows[i].HeaderCell.Value = (i * 8).ToString("X2");//sollte eigentlich funktionieren, tut es aber nicht.
             for (int i = 0; i < 256; i++)
                 dataGridView1[i % 8, i / 8].Value = Speicher[i].ToString("X2");
         }
@@ -176,7 +176,7 @@ namespace PIC_Simulator
         {
             this.Close();
         }
-        //abfrage ob es eine .LST-Datei ist hinzufügen
+        
         private void Form1_Load(object sender, EventArgs e)
         {
             int i = 0;
@@ -262,10 +262,11 @@ namespace PIC_Simulator
             //test_codezeilen_erkennen();
             //test_laenge_short();
             //test_parser();
-            test_datagrid();
+            //test_datagrid();
             //test_speicher();
             //test_liste();
             //test_Simulation();
+            test_datagrid_zeilenname();
         }
 
 
@@ -991,6 +992,71 @@ namespace PIC_Simulator
                     "0EH: " + Speicher[0x0E].ToString() + "\n");
             }
             
+        }
+
+        public void test_datagrid_zeilenname()
+        {
+            dataGridView1.Rows[0].HeaderCell.Value = "test";
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            //falschen Eventhandler erstellt
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int register = e.RowIndex * 8 + e.ColumnIndex;
+            string input = "";
+            DialogResult result = ShowInputDialog(ref input);
+            if (result == DialogResult.OK)
+            {
+                int temp = Convert.ToInt32(input, 16);
+                Speicher[register] = (Byte)temp;
+                Speicher_grid_updaten(register);
+            }
+        }
+
+        //öffnet eine neue Form mit Editfeld, OK-Button und einem Cancel-Button
+        //wird genutzt, da eine Messagebox kein Editfeld enthalten kann.
+        //TODO Verschönern mit Text und Beschriftung sowie Ausrichtung, bissl experimentieren
+        private static DialogResult ShowInputDialog(ref string input)
+        {
+            System.Drawing.Size size = new System.Drawing.Size(200, 70);
+            Form inputBox = new Form();
+
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+            inputBox.Text = "Name";
+
+            System.Windows.Forms.TextBox textBox = new TextBox();
+            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
+            textBox.Location = new System.Drawing.Point(5, 5);
+            textBox.Text = input;
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Cancel";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog();
+            input = textBox.Text;
+            return result;
         }
     }
 }
