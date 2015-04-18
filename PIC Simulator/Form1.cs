@@ -49,6 +49,9 @@ namespace PIC_Simulator
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
         List<int> TOS = new List<int>(); //Top of Stack Liste; FiLo-Liste
         Byte PCH = 0;//High-Byte des Programmcounter(PC<12:8>)
+        Byte RB_alt = 0; //alter Stand(vom letzten Programmzyklus) des Port B, wird für Interrupt benötigt;
+        Byte Timer0_alt = 0; //alter Stand(vom letzten Programmzyklus) des Timer0, wird für Interrupt benötigt
+        Byte RB0_alt = 0; //alter Stand(vom letzten Programmzyklus) des RB0-Bit, wird für Interrupt benötigt
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
@@ -112,9 +115,39 @@ namespace PIC_Simulator
             }
             extrahiere_codezeilen();
             lade_Speicher_Startzustand();
-            TOS = new List<int>();
+            
             Code_anzeigen();
             Speicher_grid_anzeigen();
+        }
+
+        public void lade_Speicher_Startzustand()
+        {
+            Speicher[0] = 0;
+            Speicher[2] = 0;
+            Speicher[3] = 0x18;
+            Speicher[5] = 0;//PortA
+            Speicher[7] = 0;
+            Speicher[0x0A] = 0;
+            Speicher[0x0B] = 0;
+            Speicher[0x80] = 0;
+            Speicher[0x81] = 0xFF;
+            Speicher[0x82] = 0;
+            Speicher[0x83] = 0x18;
+            Speicher[0x85] = 0x1F;
+            Speicher[0x86] = 0xFF;
+            Speicher[0x87] = 0;
+            Speicher[0x88] = 0;
+            Speicher[0x89] = 0;
+            Speicher[0x8A] = 0;
+            Speicher[0x8B] = 0;
+
+            //Variableninitiation
+            PCH = 0;
+            Timer0_alt = 0;
+            RB_alt = (Byte)(Speicher[Register.portb] & 0xF0);
+            TOS = new List<int>();
+            RB0_alt = (Byte)(Speicher[Register.portb] & 0x01);
+            NOP = false;
         }
 
         //zeigt die Register in einem DataGridView an
@@ -234,27 +267,7 @@ namespace PIC_Simulator
             Befehlsfunktionen[tokens.xorlw]=xorlw;
         }
 
-        public void lade_Speicher_Startzustand()
-        {
-            Speicher[0] = 0;
-            Speicher[2] = 0;
-            Speicher[3] = 0x18;
-            Speicher[5] = 0;
-            Speicher[7] = 0;
-            Speicher[0x0A] = 0;
-            Speicher[0x0B] = 0;
-            Speicher[0x80] = 0;
-            Speicher[0x81] = 0xFF;
-            Speicher[0x82] = 0;
-            Speicher[0x83] = 0x18;
-            Speicher[0x85] = 0x1F;
-            Speicher[0x86] = 0xFF;
-            Speicher[0x87] = 0;
-            Speicher[0x88] = 0;
-            Speicher[0x89] = 0;
-            Speicher[0x8A] = 0;
-            Speicher[0x8B] = 0;
-        }
+        
 
         private void button1_Click(object sender, EventArgs e)//testfunktion
         {
@@ -901,11 +914,95 @@ namespace PIC_Simulator
         /**********************************************************************************************************/
 
 
+
+        /**********************************************************************************************************/
+        //Interrupt
+        //manual Seite 31
+        //wenn ein Interrupt passiert wird an die Stelle 4 gesprungen
+        //For external interrupt events, such as the RB0/INT pin or PORTB change interrupt, the interrupt latency will be three to four instruction cycles.
+        //The interrupt flag bit(s) must be cleared in software before re-enabling interrupts to avoid infinite interrupt requests.
+        
+        //enthält sämtliche Interruptfunktionen und wird bei jedem Durchlauf vor der Befehlsausführung durchgeführt
+        public void interrupt()
+        {
+            t0if_setzen();
+            intf_setzen();
+            rbif_setzen();
+            if(timer0_interrupt()||external_Interrupt()||rb0_interrupt()||EE_interrupt())
+            {
+                //aus SLEEP-MODE aufwachen
+                if(bit_gesetzt(Register.intcon,Bits.gie))
+                {
+                    TOS_add(PC_ausgeben());
+                    PC_setzen(4);
+                    bit_löschen(Register.intcon, Bits.gie);
+                }
+            }
+        }
+        public void t0if_setzen()
+        {//wenn Timer0 überläuft
+            if (Timer0_alt == 255 && Speicher[Register.tmr0] == 0)
+                bit_setzen(Register.intcon, Bits.t0if);
+            Timer0_alt = Speicher[Register.tmr0];
+        }
+        public void intf_setzen()
+        {//external interruptflag
+            //The RB0/INT external interrupt occurred (must be cleared in software)
+            //wenn das intedg im Optionsregister gesetzt ist bei einer steigenden flanke, ansonsten bei einer fallenden
+            if (bit_gesetzt(Register.option_reg, Bits.intedg)) 
+            {
+                if (RB0_alt == 0 && (Speicher[Register.portb] & 0x01) == 1) 
+                    bit_setzen(Register.intcon, Bits.intf);
+            }
+            else
+                if (RB0_alt == 1 && (Speicher[Register.portb] & 0x01) == 0)
+                    bit_setzen(Register.intcon, Bits.intf);
+            RB0_alt = (Byte)(Speicher[Register.portb] & 0x01);
+        }
+        public void rbif_setzen()
+        {//RB Port Change
+            //At least one of the RB7:RB4 pins changed state (must be cleared in software)
+            if (RB_alt != (Speicher[Register.portb] & 0xF0))
+                bit_setzen(Register.intcon, Bits.rbif);
+            RB_alt = (Byte)(Speicher[Register.portb] & 0xF0);
+        }
+        public Boolean timer0_interrupt()
+        {
+            if (bit_gesetzt(Register.intcon, Bits.t0ie) && bit_gesetzt(Register.intcon, Bits.t0if)) 
+                return true;
+            return false;
+        }
+        public Boolean external_Interrupt()
+        {
+            if (bit_gesetzt(Register.intcon, Bits.inte) && bit_gesetzt(Register.intcon, Bits.intf))
+                return true;
+            return false;
+        }
+        public Boolean rb0_interrupt()
+        {
+            if (bit_gesetzt(Register.intcon, Bits.rbie) && bit_gesetzt(Register.intcon, Bits.rbif))
+                return true;
+            return false;
+        }
+        public Boolean EE_interrupt()
+        {//EE Write Complete Interrupt
+            if (bit_gesetzt(Register.intcon, Bits.eeie) && bit_gesetzt(Register.eecon1, Bits.eeif)) 
+                return true;
+            return false;
+        }
+
+
+
+
+
+
+
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             //falschen Eventhandler erstellt
         }
 
+        // Register ändern wenn man in das Datagrid klickt
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             int register = e.RowIndex * 8 + e.ColumnIndex;
