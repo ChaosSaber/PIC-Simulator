@@ -20,8 +20,6 @@ using System.IO;
  */
 
 /* TODO René
- * Registerausgabe Spaltennamen
- * Interrupts
  */
 
 /* TODO Felix
@@ -47,7 +45,8 @@ namespace PIC_Simulator
         public Byte[] Speicher = new Byte[256];//Registerspeicher
         public Byte w_register;
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
-        List<int> TOS = new List<int>(); //Top of Stack Liste; FiLo-Liste
+        List<int> TOS = new List<int>(8); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
+        int TOS_nummer = -1;//enthält die aktuelle Position des TOS; -1 weil es noch keine Werte enthält;Wert wird Modulo 8 genommen, falls TOS größer 8
         Byte PCH = 0;//High-Byte des Programmcounter(PC<12:8>)
         Byte RB_alt = 0; //alter Stand(vom letzten Programmzyklus) des Port B, wird für Interrupt benötigt;
         Byte Timer0_alt = 0; //alter Stand(vom letzten Programmzyklus) des Timer0, wird für Interrupt benötigt
@@ -145,7 +144,7 @@ namespace PIC_Simulator
             PCH = 0;
             Timer0_alt = 0;
             RB_alt = (Byte)(Speicher[Register.portb] & 0xF0);
-            TOS = new List<int>();
+            TOS_nummer = 0;
             RB0_alt = (Byte)(Speicher[Register.portb] & 0x01);
             NOP = false;
         }
@@ -163,12 +162,23 @@ namespace PIC_Simulator
         //aktuallisiert ein Speicherregister im DataGridView
         public void Speicher_grid_updaten(int adresse)
         {
-            dataGridView1[adresse % 8, adresse / 8].Value = Speicher[adresse].ToString("X2");
+            try
+            {
+                dataGridView1[adresse % 8, adresse / 8].Value = Speicher[adresse].ToString("X2");
+            }
+            catch(Exception e)
+            {
+                timer1.Enabled = false;
+                MessageBox.Show(adresse.ToString()+"\n"+e.Message);
+            }
+            
         }
 
         public void Code_anzeigen()
         {
             dataGridView2.RowCount = code.Length;
+            dataGridView2.Columns[1].DefaultCellStyle.Font = new Font("Courier New", 12, GraphicsUnit.Pixel);//Spalte mit dem Code
+            dataGridView2.Columns[0].DefaultCellStyle.Font = new Font("Arial", 20, GraphicsUnit.Pixel);//Spalte mit dem Breakpoint
             for(int i=0;i<code.Length;i++)
             {
                 try
@@ -279,7 +289,11 @@ namespace PIC_Simulator
             //test_speicher();
             //test_liste();
             //test_Simulation();
-            test_datagrid_zeilenname();
+            //test_datagrid_zeilenname();
+            //test_TOS_leer();
+            //test_Spalten_headergröße();
+            //test_datagrid_fonts();
+            //test_timer();
         }
 
 
@@ -352,11 +366,6 @@ namespace PIC_Simulator
             //ansonsten
             return -1;
         }
-
-        /*
-         * TODO
-         * GPR-Mapping mit den SFR-Registern ergänzen
-         */ 
         
         /*************************************************************************************************************/
         //Hilfsfunktionen für Befehlsfunktionen
@@ -416,8 +425,16 @@ namespace PIC_Simulator
                 return;
             }
             if (adresse > 0x8B && adresse < 0xD0 || adresse >= 0x82 && adresse <= 0x84 || adresse == 0x8A || adresse == 0x8B)
+            {
                 Speicher[adresse - 0x80] = Speicher[adresse];
-            Speicher_grid_updaten(adresse - 0x80);
+                Speicher_grid_updaten(adresse - 0x80);
+            }    
+        }
+        public void pcl_geändert(int adresse)
+        {
+            //Wenn dass PCL-Register das Ziel eines Schreibbefehls ist wird das PCLATH-Register ins PCH geladen
+            if (adresse % 0x80 == Register.pcl)
+                PCH = Speicher[Register.pclath];
         }
         public void speichern(int adresse,int d, Byte ergebnis)
         {
@@ -425,6 +442,7 @@ namespace PIC_Simulator
             if (d > 0)
             {
                 Speicher[adresse] = ergebnis;
+                pcl_geändert(adresse);
                 Speicher_grid_updaten(adresse);
                 Speicher_mapping(adresse);
             }
@@ -484,15 +502,29 @@ namespace PIC_Simulator
         //wird zuerst der erste gelöscht.
         public void TOS_add(int Wert)
         {
-            if (TOS.Count == 8)
-                TOS.Remove(0);
-            TOS.Add(Wert);
+            TOS_nummer++;
+            TOS[Math.Abs(TOS_nummer) % 8] = Wert;
         }
         //gibt den zuletzt eingetragenen TOS-Wert zurück und löscht diesen dann
         public int TOS_POP()
         {
-            int temp = TOS[TOS.Count - 1];
-            TOS.Remove(TOS.Count - 1);
+            /*
+            if(TOS.Count==0)
+            {
+                DialogResult result = MessageBox.Show("Ahtung sie haben ein Return ausgeführt,\nder Stack enthält aber keine Rücksprungadresse\n"+
+                    "Drücken sie auf OK um mit der nächsten Anweisung fortzufahren oder Abbrechen um das Programm zu resetten und zu stoppen", "Achtung", MessageBoxButtons.OKCancel);
+                if (result == DialogResult.OK)
+                    return PC_ausgeben() + 1;
+                else
+                {
+                    lade_Speicher_Startzustand();
+                    Speicher_grid_anzeigen();
+                    //TODO Programm stoppen
+                    return 0;
+                }
+            }*/
+            int temp = TOS[Math.Abs(TOS_nummer) % 8];
+            TOS_nummer--;
             return temp;
         }
         /*************************************************************************************************************/
@@ -502,8 +534,7 @@ namespace PIC_Simulator
             //IRP=7;RP1=6;RP0=5;TO(quer)=4;PD(quer)=3;Z=2;DC=1;C=0
 
         /***************/
-        //TODO 
-        //Statusbits DC hinzufügen
+        //TODO
         //WDT
         //WDT prescaler
 
@@ -549,6 +580,7 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             Speicher[adresse] = 0;
+            pcl_geändert(adresse);
             Speicher_mapping(adresse);
             if (adresse % 0x80 != Register.status) 
                 Z_Flag(Speicher[adresse]);
@@ -635,12 +667,14 @@ namespace PIC_Simulator
         }
 
         public void movf(int codezeile)
-        {
+        {//TODO wird hier auch PCLATH ins PCH wenn f==PCL
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            if (d == 0) 
+            if (d == 0)
                 w_register = Speicher[adresse];
+            else
+                pcl_geändert(adresse);
             if (adresse % 0x80 != Register.status) 
                 Z_Flag(Speicher[adresse]);
             PC_erhöhen();
@@ -651,6 +685,7 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             Speicher[adresse] = w_register;
+            pcl_geändert(adresse);
             Speicher_grid_updaten(adresse);
             Speicher_mapping(adresse);
             PC_erhöhen();
@@ -674,7 +709,7 @@ namespace PIC_Simulator
                 Carry_löschen();
             Byte ergebnis = (Byte)(Speicher[adresse] << 1);
             if (carry)
-                bit_setzen(adresse,0);//wenn das Carrybit am Anfang gesetzt war, setze das Bit0 auf 1
+                ergebnis |= (Byte)0x01;//wenn das Carrybit am Anfang gesetzt war, setze das Bit0 auf 1
             speichern(adresse, d, ergebnis);
             PC_erhöhen();
         }
@@ -691,7 +726,7 @@ namespace PIC_Simulator
                 Carry_löschen();
             Byte ergebnis = (Byte)(Speicher[adresse] >> 1);
             if (carry)
-                bit_setzen(adresse, 7);//wenn das Carrybit am Anfang gesetzt war, setze das Bit7
+                ergebnis |= (Byte)0x80;//wenn das Carrybit am Anfang gesetzt war, setze das Bit7
             speichern(adresse, d, ergebnis);
             PC_erhöhen();
         }
@@ -750,6 +785,7 @@ namespace PIC_Simulator
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
             bit_löschen(adresse, bitnummer);
+            pcl_geändert(adresse);
             Speicher_mapping(adresse);
             PC_erhöhen();
         }
@@ -761,6 +797,7 @@ namespace PIC_Simulator
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
             bit_setzen(adresse, bitnummer);
+            pcl_geändert(adresse);
             Speicher_mapping(adresse);
             PC_erhöhen();
         }
@@ -1018,8 +1055,6 @@ namespace PIC_Simulator
 
         //öffnet eine neue Form mit Editfeld, OK-Button und einem Cancel-Button
         //wird genutzt, da eine Messagebox kein Editfeld enthalten kann.
-        //TODO Verschönern mit Text und Beschriftung sowie Ausrichtung, bissl experimentieren
-        //http://stackoverflow.com/questions/97097/what-is-the-c-sharp-version-of-vb-nets-inputdialog
         private static DialogResult ShowInputDialog(ref string input,int register)
         {
             System.Drawing.Size size = new System.Drawing.Size(165, 100);
@@ -1065,6 +1100,16 @@ namespace PIC_Simulator
             DialogResult result = inputBox.ShowDialog();
             input = textBox.Text;
             return result;
+        }
+
+
+
+        /*************************************************************************************************************/
+        //Timer in dem das Programm abläuft
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            int zeilennummer = PC_ausgeben();
+            Befehlsfunktionen[parser(zeilennummer)](zeilennummer);
         }
 
 
@@ -1163,6 +1208,36 @@ namespace PIC_Simulator
         public void test_datagrid_zeilenname()
         {
             dataGridView1.Rows[0].HeaderCell.Value = "test";
+            dataGridView1.Rows[1].HeaderCell.Value = "07";
+            dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
         }
+
+        public void test_TOS_leer()
+        {
+            //Return ausgeführt aber TOS enthälte keine Werte
+            PC_setzen(TOS_POP());
+        }
+        public void test_Spalten_headergröße()
+        {
+            DialogResult result = DialogResult.OK;
+            while (result == DialogResult.OK) 
+            {
+                dataGridView1.RowHeadersWidth += 1;
+                result = MessageBox.Show(dataGridView1.RowHeadersWidth.ToString(), "test", MessageBoxButtons.OKCancel);
+            } 
+        }
+        public void test_datagrid_fonts()
+        {
+            dataGridView2.Columns[0].DefaultCellStyle.Font = new Font("Arial", 20, GraphicsUnit.Pixel);
+            dataGridView2[0, 0].Value = "B";
+        }
+        public void test_timer()
+        {
+            if (timer1.Enabled)
+                timer1.Enabled = false;
+            else
+                timer1.Enabled = true;
+        }
+        
     }
 }

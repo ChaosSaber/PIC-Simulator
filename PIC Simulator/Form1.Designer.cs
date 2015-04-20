@@ -65,9 +65,10 @@
             // richTextBox1
             // 
             this.richTextBox1.Font = new System.Drawing.Font("Courier New", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBox1.Location = new System.Drawing.Point(386, 254);
+            this.richTextBox1.Location = new System.Drawing.Point(515, 313);
+            this.richTextBox1.Margin = new System.Windows.Forms.Padding(4);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(924, 372);
+            this.richTextBox1.Size = new System.Drawing.Size(1231, 457);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
             this.richTextBox1.Visible = false;
@@ -81,7 +82,8 @@
             this.dateiToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1399, 24);
+            this.menuStrip1.Padding = new System.Windows.Forms.Padding(8, 2, 0, 2);
+            this.menuStrip1.Size = new System.Drawing.Size(1865, 28);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -91,21 +93,21 @@
             this.ladenToolStripMenuItem,
             this.schließenToolStripMenuItem});
             this.dateiToolStripMenuItem.Name = "dateiToolStripMenuItem";
-            this.dateiToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
+            this.dateiToolStripMenuItem.Size = new System.Drawing.Size(57, 24);
             this.dateiToolStripMenuItem.Text = "Datei";
             // 
             // ladenToolStripMenuItem
             // 
             this.ladenToolStripMenuItem.Name = "ladenToolStripMenuItem";
-            this.ladenToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.ladenToolStripMenuItem.Size = new System.Drawing.Size(136, 24);
             this.ladenToolStripMenuItem.Text = "laden";
             this.ladenToolStripMenuItem.Click += new System.EventHandler(this.ladenToolStripMenuItem_Click);
             // 
             // schließenToolStripMenuItem
             // 
             this.schließenToolStripMenuItem.Name = "schließenToolStripMenuItem";
-            this.schließenToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
-            this.schließenToolStripMenuItem.Text = "schließen";
+            this.schließenToolStripMenuItem.Size = new System.Drawing.Size(136, 24);
+            this.schließenToolStripMenuItem.Text = "beenden";
             this.schließenToolStripMenuItem.Click += new System.EventHandler(this.schließenToolStripMenuItem_Click);
             // 
             // openFileDialog1
@@ -115,9 +117,10 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(1186, 189);
+            this.button1.Location = new System.Drawing.Point(1581, 233);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.Size = new System.Drawing.Size(100, 28);
             this.button1.TabIndex = 2;
             this.button1.Text = "test";
             this.button1.UseVisualStyleBackColor = true;
@@ -129,7 +132,7 @@
             this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.AllowUserToResizeColumns = false;
             this.dataGridView1.AllowUserToResizeRows = false;
-            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.ColumnHeader;
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Spalte0,
@@ -140,15 +143,16 @@
             this.Spalte5,
             this.Spalte6,
             this.Spalte7});
-            this.dataGridView1.Location = new System.Drawing.Point(12, 42);
+            this.dataGridView1.Location = new System.Drawing.Point(16, 52);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
-            this.dataGridView1.RowHeadersWidth = 25;
+            this.dataGridView1.RowHeadersWidth = 50;
             this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridView1.RowTemplate.ReadOnly = true;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(246, 236);
+            this.dataGridView1.Size = new System.Drawing.Size(359, 290);
             this.dataGridView1.TabIndex = 3;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
@@ -162,7 +166,7 @@
             this.Spalte0.ReadOnly = true;
             this.Spalte0.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte0.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte0.Width = 25;
+            this.Spalte0.Width = 30;
             // 
             // Spalte1
             // 
@@ -173,7 +177,7 @@
             this.Spalte1.ReadOnly = true;
             this.Spalte1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte1.Width = 25;
+            this.Spalte1.Width = 30;
             // 
             // Spalte2
             // 
@@ -184,7 +188,7 @@
             this.Spalte2.ReadOnly = true;
             this.Spalte2.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte2.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte2.Width = 25;
+            this.Spalte2.Width = 30;
             // 
             // Spalte3
             // 
@@ -195,7 +199,7 @@
             this.Spalte3.ReadOnly = true;
             this.Spalte3.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte3.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte3.Width = 25;
+            this.Spalte3.Width = 30;
             // 
             // Spalte4
             // 
@@ -206,7 +210,7 @@
             this.Spalte4.ReadOnly = true;
             this.Spalte4.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte4.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte4.Width = 25;
+            this.Spalte4.Width = 30;
             // 
             // Spalte5
             // 
@@ -217,7 +221,7 @@
             this.Spalte5.ReadOnly = true;
             this.Spalte5.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte5.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte5.Width = 25;
+            this.Spalte5.Width = 30;
             // 
             // Spalte6
             // 
@@ -228,7 +232,7 @@
             this.Spalte6.ReadOnly = true;
             this.Spalte6.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte6.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte6.Width = 25;
+            this.Spalte6.Width = 30;
             // 
             // Spalte7
             // 
@@ -239,59 +243,65 @@
             this.Spalte7.ReadOnly = true;
             this.Spalte7.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Spalte7.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Spalte7.Width = 25;
+            this.Spalte7.Width = 30;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 16);
+            this.label1.Location = new System.Drawing.Point(8, 20);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 13);
+            this.label1.Size = new System.Drawing.Size(52, 17);
             this.label1.TabIndex = 4;
             this.label1.Text = "W-Reg";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 29);
+            this.label2.Location = new System.Drawing.Point(8, 36);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(28, 13);
+            this.label2.Size = new System.Drawing.Size(35, 17);
             this.label2.TabIndex = 5;
             this.label2.Text = "FSR";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 42);
+            this.label3.Location = new System.Drawing.Point(8, 52);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(27, 13);
+            this.label3.Size = new System.Drawing.Size(34, 17);
             this.label3.TabIndex = 6;
             this.label3.Text = "PCL";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 55);
+            this.label4.Location = new System.Drawing.Point(8, 68);
+            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(49, 13);
+            this.label4.Size = new System.Drawing.Size(62, 17);
             this.label4.TabIndex = 7;
             this.label4.Text = "PCLATH";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(6, 68);
+            this.label5.Location = new System.Drawing.Point(8, 84);
+            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(21, 13);
+            this.label5.Size = new System.Drawing.Size(26, 17);
             this.label5.TabIndex = 8;
             this.label5.Text = "PC";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(6, 81);
+            this.label6.Location = new System.Drawing.Point(8, 100);
+            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(37, 13);
+            this.label6.Size = new System.Drawing.Size(48, 17);
             this.label6.TabIndex = 9;
             this.label6.Text = "Status";
             // 
@@ -303,12 +313,19 @@
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label4);
-            this.groupBox1.Location = new System.Drawing.Point(12, 299);
+            this.groupBox1.Location = new System.Drawing.Point(16, 368);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(200, 208);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBox1.Size = new System.Drawing.Size(267, 256);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Spezialfunktionsregister";
+            // 
+            // timer1
+            // 
+            this.timer1.Interval = 500;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // dataGridView2
             // 
@@ -321,13 +338,13 @@
             this.dataGridView2.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Breakpoint,
             this.Codetext});
-            this.dataGridView2.Location = new System.Drawing.Point(386, 254);
-            this.dataGridView2.Margin = new System.Windows.Forms.Padding(2);
+            this.dataGridView2.Location = new System.Drawing.Point(515, 313);
+            this.dataGridView2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.ReadOnly = true;
             this.dataGridView2.RowHeadersVisible = false;
             this.dataGridView2.RowTemplate.Height = 24;
-            this.dataGridView2.Size = new System.Drawing.Size(924, 402);
+            this.dataGridView2.Size = new System.Drawing.Size(1232, 495);
             this.dataGridView2.TabIndex = 11;
             // 
             // Breakpoint
@@ -349,10 +366,10 @@
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1399, 659);
+            this.ClientSize = new System.Drawing.Size(1865, 811);
             this.Controls.Add(this.dataGridView2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.dataGridView1);
@@ -360,6 +377,7 @@
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "PIC Simulator";
             this.Load += new System.EventHandler(this.Form1_Load);
