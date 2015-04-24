@@ -45,8 +45,7 @@ namespace PIC_Simulator
         public Byte[] Speicher = new Byte[256];//Registerspeicher
         public Byte w_register;
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
-        List<int> TOS = new List<int>(8); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
-        int TOS_nummer = -1;//enthält die aktuelle Position des TOS; -1 weil es noch keine Werte enthält;Wert wird Modulo 8 genommen, falls TOS größer 8
+        Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
         Byte PCH = 0;//High-Byte des Programmcounter(PC<12:8>)
         Byte RB_alt = 0; //alter Stand(vom letzten Programmzyklus) des Port B, wird für Interrupt benötigt;
         Byte Timer0_alt = 0; //alter Stand(vom letzten Programmzyklus) des Timer0, wird für Interrupt benötigt
@@ -144,7 +143,6 @@ namespace PIC_Simulator
             PCH = 0;
             Timer0_alt = 0;
             RB_alt = (Byte)(Speicher[Register.portb] & 0xF0);
-            TOS_nummer = 0;
             RB0_alt = (Byte)(Speicher[Register.portb] & 0x01);
             NOP = false;
         }
@@ -498,35 +496,7 @@ namespace PIC_Simulator
         {
             return bit_gesetzt(Register.status, Bits.rp0);
         }
-        //fügt dem TOS einen Wert hinzu. wenn der TOS bereits 8 Werte enthält
-        //wird zuerst der erste gelöscht.
-        public void TOS_add(int Wert)
-        {
-            TOS_nummer++;
-            TOS[Math.Abs(TOS_nummer) % 8] = Wert;
-        }
-        //gibt den zuletzt eingetragenen TOS-Wert zurück und löscht diesen dann
-        public int TOS_POP()
-        {
-            /*
-            if(TOS.Count==0)
-            {
-                DialogResult result = MessageBox.Show("Ahtung sie haben ein Return ausgeführt,\nder Stack enthält aber keine Rücksprungadresse\n"+
-                    "Drücken sie auf OK um mit der nächsten Anweisung fortzufahren oder Abbrechen um das Programm zu resetten und zu stoppen", "Achtung", MessageBoxButtons.OKCancel);
-                if (result == DialogResult.OK)
-                    return PC_ausgeben() + 1;
-                else
-                {
-                    lade_Speicher_Startzustand();
-                    Speicher_grid_anzeigen();
-                    //TODO Programm stoppen
-                    return 0;
-                }
-            }*/
-            int temp = TOS[Math.Abs(TOS_nummer) % 8];
-            TOS_nummer--;
-            return temp;
-        }
+        
         /*************************************************************************************************************/
         //Befehlsfunktionen
         //Status = Speicheradresse 3
@@ -852,7 +822,7 @@ namespace PIC_Simulator
         public void call(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
-            TOS_add(PC_ausgeben() + 1);//PC + 1 -> TOS
+            TOS.Add(PC_ausgeben() + 1);//PC + 1 -> TOS
             PC_setzen(adresse);//literal -> PC<10:0>
             PCH |= (Byte)(Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
             //2-cycle Instruction
@@ -892,7 +862,7 @@ namespace PIC_Simulator
         public void retfie(int codezeile)
         {
             //return from interrupt;
-            PC_setzen(TOS_POP());//TOS -> PC
+            PC_setzen(TOS.Pop());//TOS -> PC
             bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
             bit_setzen(Register.intcon, Bits.gie);
         }
@@ -901,13 +871,13 @@ namespace PIC_Simulator
         {
             int literal = Befehle[codezeile] & 0x00FF;
             w_register = (Byte)literal;
-            PC_setzen(TOS_POP());//TOS -> PC
+            PC_setzen(TOS.Pop());//TOS -> PC
         }
 
         public void _return(int codezeile)
         {
             //return from Subroutine
-            PC_setzen(TOS_POP());//TOS -> PC
+            PC_setzen(TOS.Pop());//TOS -> PC
             //this is a two-cycle instruction
         }
        
@@ -970,7 +940,7 @@ namespace PIC_Simulator
                 //aus SLEEP-MODE aufwachen
                 if(bit_gesetzt(Register.intcon,Bits.gie))
                 {
-                    TOS_add(PC_ausgeben());
+                    TOS.Add(PC_ausgeben());
                     PC_setzen(4);
                     bit_löschen(Register.intcon, Bits.gie);
                 }
@@ -1159,19 +1129,6 @@ namespace PIC_Simulator
         {
             MessageBox.Show(Speicher[0].ToString() + " " + Speicher[1].ToString() + " " + Speicher[9].ToString());
         }
-        public void test_liste()
-        {
-            TOS.Add(1);
-            TOS.Add(2);
-            TOS.Add(3);
-            TOS.Add(4);
-            TOS.Add(5);
-            MessageBox.Show(TOS.Count.ToString());
-            MessageBox.Show(TOS[3].ToString());
-            TOS.Remove(3);
-            MessageBox.Show(TOS[3].ToString());
-            MessageBox.Show(TOS.Count.ToString());
-        }
         public void test_Simulation()
         {
             while(true)
@@ -1212,11 +1169,6 @@ namespace PIC_Simulator
             dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
         }
 
-        public void test_TOS_leer()
-        {
-            //Return ausgeführt aber TOS enthälte keine Werte
-            PC_setzen(TOS_POP());
-        }
         public void test_Spalten_headergröße()
         {
             DialogResult result = DialogResult.OK;
