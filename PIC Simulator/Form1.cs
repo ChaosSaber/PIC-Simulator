@@ -288,10 +288,9 @@ namespace PIC_Simulator
             //test_liste();
             //test_Simulation();
             //test_datagrid_zeilenname();
-            //test_TOS_leer();
             //test_Spalten_headergröße();
             //test_datagrid_fonts();
-            //test_timer();
+            test_timer();
         }
 
 
@@ -1190,6 +1189,5 @@ namespace PIC_Simulator
             else
                 timer1.Enabled = true;
         }
-        
     }
 }
