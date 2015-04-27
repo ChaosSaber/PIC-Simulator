@@ -56,6 +56,8 @@
             this.dataGridView2 = new System.Windows.Forms.DataGridView();
             this.Breakpoint = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Codetext = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.interrupttimer = new System.Windows.Forms.Timer(this.components);
+            this.timer0_counter = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -364,6 +366,16 @@
             this.Codetext.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Codetext.Width = 1320;
             // 
+            // interrupttimer
+            // 
+            this.interrupttimer.Interval = 50;
+            this.interrupttimer.Tick += new System.EventHandler(this.interrupttimer_Tick);
+            // 
+            // timer0_counter
+            // 
+            this.timer0_counter.Interval = 50;
+            this.timer0_counter.Tick += new System.EventHandler(this.timer0_counter_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -421,6 +433,8 @@
         private System.Windows.Forms.DataGridView dataGridView2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Breakpoint;
         private System.Windows.Forms.DataGridViewTextBoxColumn Codetext;
+        private System.Windows.Forms.Timer interrupttimer;
+        private System.Windows.Forms.Timer timer0_counter;
     }
 }
 

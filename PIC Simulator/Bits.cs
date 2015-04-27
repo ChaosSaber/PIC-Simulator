@@ -33,5 +33,11 @@ namespace PIC_Simulator
 
         //Option-Register
         public const int intedg = 6;
+        public const int t0cs = 5;
+        public const int t0se = 4;
+        public const int psa = 3;
+        public const int ps2 = 2;
+        public const int ps1 = 1;
+        public const int ps0 = 0;
     }
 }
