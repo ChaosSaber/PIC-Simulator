@@ -18,22 +18,20 @@ using System.IO;
  * externer / interner Takt am TMR0-Pin incl. Vorteiler
  * EEPROM Funktionen (Z)
  * Speicherwert der register bei Reset==bei Start?
+ * fragen zum Steuerpult step out, step over,...
  */
 
 /* TODO René
  */
 
 /* TODO Felix
- * graphischen Kram
- * Breakpoints
- * Buutons Start/Stop/reset/step
  * laufzeitzähler
  */
 
 
 
 
-//test
+
 namespace PIC_Simulator
 {
     delegate void BEFEHLSFUNKTIONEN(int codezeile); //Zeiger auf die Befehlsfunktionen
@@ -51,6 +49,11 @@ namespace PIC_Simulator
         Byte RB_alt = 0; //alter Stand(vom letzten Programmzyklus) des Port B, wird für Interrupt benötigt;
         Byte Timer0_alt = 0; //alter Stand(vom letzten Programmzyklus) des Timer0, wird für Interrupt benötigt
         Byte RB0_alt = 0; //alter Stand(vom letzten Programmzyklus) des RB0-Bit, wird für Interrupt benötigt
+        Boolean[] breakpoint;//TODO initialisierung//Boolwert ob die Zeile einen Breakpoint enthält
+        Boolean reset = false;//wenn dieser Wert true ist wird das laufende Programm abgebrochen
+        Boolean stepout = false;//wenn dieser wert true ist wird das laufende Programm abgebrochen sobald es auf ein return trifft;
+        Boolean stepover = false;//bestimmt ob sich das Programm im stepovermodus befindet
+        int temp_breakpoint = -1;//temporärer Breakpoint für stepover
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
@@ -93,6 +96,9 @@ namespace PIC_Simulator
             Array.Resize(ref Befehle, zaehler);
             Array.Resize(ref temp_int, zaehler);
             codezeile=temp_int;
+            breakpoint = new Boolean[zaehler];
+            for (int i = 0; i < zaehler; i++)
+                breakpoint[i] = false;
         }
 
         //Datei laden
@@ -148,6 +154,15 @@ namespace PIC_Simulator
             NOP = false;
             Ra4_alt = (Byte)(Speicher[Register.porta] & 0x10);
             prescaler = 0;
+            stepout = false;
+            stepover = false;
+            temp_breakpoint = -1;
+            reset = false;
+
+            for (int i = 0; i < breakpoint.Length; i++)
+                breakpoint[i] = false;
+
+            update_SpecialFunctionRegister();
         }
 
         //zeigt die Register in einem DataGridView an
@@ -169,7 +184,7 @@ namespace PIC_Simulator
             }
             catch(Exception e)
             {
-                timer1.Enabled = false;
+                programmtimer.Enabled = false;
                 MessageBox.Show(adresse.ToString()+"\n"+e.Message);
             }
             
@@ -239,6 +254,7 @@ namespace PIC_Simulator
                 i++;
             }
             Speicher_grid_anzeigen();
+
          
             //Array der Befehlsfunktionen initialisieren
             Befehlsfunktionen[tokens.addwf]=addwf;
@@ -293,7 +309,8 @@ namespace PIC_Simulator
             //test_datagrid_zeilenname();
             //test_Spalten_headergröße();
             //test_datagrid_fonts();
-            test_timer();
+            //test_timer();
+            //test_datagrid_zeile_markieren();
         }
 
 
@@ -1200,8 +1217,7 @@ namespace PIC_Simulator
         //Timer in dem das Programm abläuft
         private void timer1_Tick(object sender, EventArgs e)
         {
-            int zeilennummer = PC_ausgeben();
-            Befehlsfunktionen[parser(zeilennummer)](zeilennummer);
+            Programmablauf();
         }
 
 
@@ -1307,12 +1323,180 @@ namespace PIC_Simulator
         }
         public void test_timer()
         {
-            if (timer1.Enabled)
-                timer1.Enabled = false;
+            if (programmtimer.Enabled)
+                programmtimer.Enabled = false;
             else
-                timer1.Enabled = true;
+                programmtimer.Enabled = true;
+        }
+        public void test_datagrid_zeile_markieren()
+        {
+            dataGridView2.ClearSelection();
+            dataGridView2.Rows[3].Selected = true;
         }
 
+        //Testfunktionen Ende
+        /***************************************************************************************************/
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            //Power-on-Reset
+            reset = true;
+            lade_Speicher_Startzustand();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            //startet das Programm bis entweder ein Breakpoint erreicht wird oder die Go-Taste erneut
+            //betätigt wird. Ein Reset (F2) ist auch möglich.
+            if (programmtimer.Enabled)
+            {
+                StartStopButton.Text = "Start";
+                Programm_start(false);
+            }
+            else
+            {
+                StartStopButton.Text = "Stop";
+                Programm_start(true);
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            programmtimer.Enabled = false;
+        }
+
+
+        public int ist_codezeile(int zeile)
+        {
+            //wenn die übergebene Zeile verwertbaren Code enthält wird true zurückgegeben
+            for (int i = 0; i < codezeile.Length; i++) 
+            {
+                if (zeile == codezeile[i])
+                    return i;
+            }
+            return -1;
+        }
+        private void dataGridView2_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            //wenn in die Zweite Spalte geklickt wird, wird diese Funktion beendet, da in die erste Spalte geklickt werden muss
+            if (e.ColumnIndex == 1)
+                return;
+            int temp=ist_codezeile(e.RowIndex);
+            if(temp>=0)
+            {
+                if(breakpoint[temp])
+                {
+                    breakpoint[temp] = false;
+                    dataGridView2[0, e.RowIndex].Value = "";
+                }
+                else
+                {
+                    breakpoint[temp] = true;
+                    dataGridView2[0, e.RowIndex].Value = "B";
+                }
+            }
+        }
+        public void markiere_zeile(int zeilennummer)
+        {
+            dataGridView2.ClearSelection();
+            dataGridView2.Rows[zeilennummer].Selected = true;
+        }
+
+
+        public void Programm_start(Boolean starten)
+        {
+            if(starten)
+            {
+                programmtimer.Enabled = true;
+                interrupttimer.Enabled = true;
+                timer0_counter.Enabled = true;
+            }
+            else
+            {
+                programmtimer.Enabled = false;
+                interrupttimer.Enabled = false;
+                timer0_counter.Enabled = false;
+            }
+        }
+
+        public void Programmablauf()
+        {
+            Interrupt();
+            int zeilennummer = PC_ausgeben();
+            int befehl=parser(zeilennummer);
+            Befehlsfunktionen[befehl](zeilennummer);
+            if (breakpoint[PC_ausgeben()]) 
+            {
+                Programm_start(false);
+            }
+            if(reset)
+            {
+                reset = false;
+                Programm_start(false);
+                lade_Speicher_Startzustand();
+            }
+            if (stepout && (befehl == tokens.retfie || befehl == tokens.retlw || befehl == tokens._return)) 
+            {
+                stepout = false;
+                Programm_start(false);
+            }
+            if(stepover&&temp_breakpoint==PC_ausgeben())
+            {
+                stepover = false;
+                Programm_start(false);
+                dataGridView2[0, codezeile[temp_breakpoint]].Value = "";
+                temp_breakpoint = -1;
+            }
+            //nächste Zeile markieren
+            markiere_zeile(codezeile[PC_ausgeben()]);
+            update_SpecialFunctionRegister();
+        }
+
+        private void IgnoreButton_Click(object sender, EventArgs e)
+        {
+            //überspringt den nächsten Befehl(ändert nur den PC)
+            PC_erhöhen();
+            markiere_zeile(codezeile[PC_ausgeben()]);
+        }
+
+        private void StepInButton_Click(object sender, EventArgs e)
+        {
+            //führt den nächsten Befehl aus
+            Programmablauf();
+        }
+
+        private void StepOutButton_Click(object sender, EventArgs e)
+        {
+            //führt aus einem Unterprogramm heraus. Es werden die Befehle 
+            //nach und nach abgeabreitet bis ein Rücksprungbefehl (RETLW, 
+            //RETURN, RETFIE) auftaucht.
+            stepout = true;
+            Programm_start(true);
+        }
+
+        private void StepOverButton_Click(object sender, EventArgs e)
+        {
+            //setzt einen temporären Brakpoint auf den nachfolgenden Befehl und startet das Programm.
+            //So lassen sich die Unterprogramme schnell durchlaufen. Sobald der Breakpoint erreicht
+            //wird, stoppt die Simulation. Sollte das Programm in eine Endlosschleife laufen, kann man die Simulation
+            //durch Reset (F2) abbrechen.
+            stepover = true;
+            temp_breakpoint = PC_ausgeben() + 1;
+            PC_setzen(0);
+            markiere_zeile(codezeile[PC_ausgeben()]);
+            dataGridView2[0, codezeile[temp_breakpoint]].Value = "b";
+            Programm_start(true);
+        }
+
+        public void update_SpecialFunctionRegister()
+        {
+            label_w_register.Text = w_register.ToString("X2");
+            label_fsr.Text = Speicher[Register.fsr].ToString("X2");
+            label_pcl.Text = Speicher[Register.pcl].ToString("X2");
+            label_pclath.Text = Speicher[Register.pclath].ToString("X2");
+            label_pc.Text = PC_ausgeben().ToString("X2");
+            label_status.Text = Speicher[Register.status].ToString("X2");
+        }
         
 
         
