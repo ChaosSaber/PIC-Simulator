@@ -119,13 +119,26 @@ namespace PIC_Simulator
                 MessageBox.Show("Datei konnte nicht geladen werden:\n"+f.Message);
             }
             extrahiere_codezeilen();
-            lade_Speicher_Startzustand();
+            Power_On_Reset();
             
             Code_anzeigen();
             Speicher_grid_anzeigen();
+
+            //Button für reset, start und step enablen
+            StartStopButton.Enabled = true;
+            resetButton.Enabled = true;
+            StepInButton.Enabled = true;
+            StepOverButton.Enabled = true;
+            IgnoreButton.Enabled = true;
+            StepOutButton.Enabled = true;
         }
 
-        public void lade_Speicher_Startzustand()
+        /*****************************************************************************************************/
+        //Reset
+
+        //TODO welcher Reset ist der Button-Reset?
+        //Manual Seite 27
+        public void Power_On_Reset()
         {
             Speicher[0] = 0;
             Speicher[2] = 0;
@@ -165,14 +178,55 @@ namespace PIC_Simulator
             update_SpecialFunctionRegister();
         }
 
+        public void MCLR()
+        {
+            //manual Seite 27
+            //during: normal Operation, sleep
+            //WDT-Reset during normal operation
+            PC_setzen(0);
+            Speicher[0x03] &= 0x1F;
+            //Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
+            Speicher[0x0A] = 0;
+            Speicher[0x0B] &= 0x01;
+            Speicher[0x81] = 0xFF;
+            Speicher[0x83] &= 0x1F;//Status
+            //TODO Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
+            Speicher[0x85] = 0x1F;
+            Speicher[0x86] = 0xFF;
+            Speicher[0x88] &= 0xE8;//EECON1
+            //TODO EECON1<3>:  value depends on condition
+            Speicher[0x8A] = 0;
+            Speicher[0x8B] &= 0x01;
+            //TODO wie beeinflusst das die Variablen?
+
+            update_SpecialFunctionRegister();
+        }
+
+        public void Wakeup_from_sleep()
+        {
+            //manual seite 27
+            //Through interrupt
+            //through WDT Time-out
+
+            PC_erhöhen();
+            //TODO STatus(3 und 0x83) depends on condition siehe Tabelle 6-3
+            Speicher[0x88] &= 0xEF;
+            //TODO wie beeinflusst das die Variablen
+        }
+
+        //Resets Ende
+        /***********************************************************************************************/
+
+
+
         //zeigt die Register in einem DataGridView an
         public void Speicher_grid_anzeigen()
         {
-            dataGridView1.RowCount = 32;//32 Zeilen à 8 Register/Byte = 256/FFH Register
+            dataGridView_Speicher.RowCount = 32;//32 Zeilen à 8 Register/Byte = 256/FFH Register
             for (int i = 0; i < 32; i++)
-                dataGridView1.Rows[i].HeaderCell.Value = (i * 8).ToString("X2");//sollte eigentlich funktionieren, tut es aber nicht.
+                dataGridView_Speicher.Rows[i].HeaderCell.Value = (i * 8).ToString("X2");//sollte eigentlich funktionieren, tut es aber nicht.
             for (int i = 0; i < 256; i++)
-                dataGridView1[i % 8, i / 8].Value = Speicher[i].ToString("X2");
+                dataGridView_Speicher[i % 8, i / 8].Value = Speicher[i].ToString("X2");
         }
 
         //aktuallisiert ein Speicherregister im DataGridView
@@ -180,7 +234,7 @@ namespace PIC_Simulator
         {
             try
             {
-                dataGridView1[adresse % 8, adresse / 8].Value = Speicher[adresse].ToString("X2");
+                dataGridView_Speicher[adresse % 8, adresse / 8].Value = Speicher[adresse].ToString("X2");
             }
             catch(Exception e)
             {
@@ -192,14 +246,14 @@ namespace PIC_Simulator
 
         public void Code_anzeigen()
         {
-            dataGridView2.RowCount = code.Length;
-            dataGridView2.Columns[1].DefaultCellStyle.Font = new Font("Courier New", 12, GraphicsUnit.Pixel);//Spalte mit dem Code
-            dataGridView2.Columns[0].DefaultCellStyle.Font = new Font("Arial", 20, GraphicsUnit.Pixel);//Spalte mit dem Breakpoint
+            dataGridView_code.RowCount = code.Length;
+            dataGridView_code.Columns[1].DefaultCellStyle.Font = new Font("Courier New", 12, GraphicsUnit.Pixel);//Spalte mit dem Code
+            dataGridView_code.Columns[0].DefaultCellStyle.Font = new Font("Arial", 20, GraphicsUnit.Pixel);//Spalte mit dem Breakpoint
             for(int i=0;i<code.Length;i++)
             {
                 try
                 {
-                    dataGridView2[1, i].Value = code[i];
+                    dataGridView_code[1, i].Value = code[i];
                 }
                 catch(Exception e)
                 {
@@ -257,41 +311,51 @@ namespace PIC_Simulator
 
          
             //Array der Befehlsfunktionen initialisieren
-            Befehlsfunktionen[tokens.addwf]=addwf;
-            Befehlsfunktionen[tokens.andwf]=andwf;
-            Befehlsfunktionen[tokens.clrf]=clrf;
-            Befehlsfunktionen[tokens.clrw]=clrw;
-            Befehlsfunktionen[tokens.comf]=comf;
-            Befehlsfunktionen[tokens.decf]=decf;
-            Befehlsfunktionen[tokens.decfsz]=decfsz;
-            Befehlsfunktionen[tokens.incf]=incf;
-            Befehlsfunktionen[tokens.incfsz]=incfsz;
-            Befehlsfunktionen[tokens.iorwf]=iorwf;
-            Befehlsfunktionen[tokens.movf]=movf;
-            Befehlsfunktionen[tokens.movwf]=movwf;
-            Befehlsfunktionen[tokens.nop]=nop;
-            Befehlsfunktionen[tokens.rlf]=rlf;
-            Befehlsfunktionen[tokens.rrf]=rrf;
-            Befehlsfunktionen[tokens.subwf]=subwf;
-            Befehlsfunktionen[tokens.swapf]=swapf;
-            Befehlsfunktionen[tokens.xorwf]=xorwf;
-            Befehlsfunktionen[tokens.bcf]=bcf;
-            Befehlsfunktionen[tokens.bsf]=bsf;
-            Befehlsfunktionen[tokens.btfsc]=btfsc;
-            Befehlsfunktionen[tokens.btfss]=btfss;
-            Befehlsfunktionen[tokens.addlw]=addlw;
-            Befehlsfunktionen[tokens.andlw]=andlw;
-            Befehlsfunktionen[tokens.call]=call;
-            Befehlsfunktionen[tokens.clrwdt]=clrwdt;
-            Befehlsfunktionen[tokens._goto]=_goto;
-            Befehlsfunktionen[tokens.iorlw]=iorlw;
-            Befehlsfunktionen[tokens.movlw]=movlw;
-            Befehlsfunktionen[tokens.retfie]=retfie;
-            Befehlsfunktionen[tokens.retlw]=retlw;
-            Befehlsfunktionen[tokens._return]=_return;
-            Befehlsfunktionen[tokens.sleep]=sleep;
-            Befehlsfunktionen[tokens.sublw]=sublw;
-            Befehlsfunktionen[tokens.xorlw]=xorlw;
+            Befehlsfunktionen[tokens.addwf] = addwf;
+            Befehlsfunktionen[tokens.andwf] = andwf;
+            Befehlsfunktionen[tokens.clrf] = clrf;
+            Befehlsfunktionen[tokens.clrw] = clrw;
+            Befehlsfunktionen[tokens.comf] = comf;
+            Befehlsfunktionen[tokens.decf] = decf;
+            Befehlsfunktionen[tokens.decfsz] = decfsz;
+            Befehlsfunktionen[tokens.incf] = incf;
+            Befehlsfunktionen[tokens.incfsz] = incfsz;
+            Befehlsfunktionen[tokens.iorwf] = iorwf;
+            Befehlsfunktionen[tokens.movf] = movf;
+            Befehlsfunktionen[tokens.movwf] = movwf;
+            Befehlsfunktionen[tokens.nop] = nop;
+            Befehlsfunktionen[tokens.rlf] = rlf;
+            Befehlsfunktionen[tokens.rrf] = rrf;
+            Befehlsfunktionen[tokens.subwf] = subwf;
+            Befehlsfunktionen[tokens.swapf] = swapf;
+            Befehlsfunktionen[tokens.xorwf] = xorwf;
+            Befehlsfunktionen[tokens.bcf] = bcf;
+            Befehlsfunktionen[tokens.bsf] = bsf;
+            Befehlsfunktionen[tokens.btfsc] = btfsc;
+            Befehlsfunktionen[tokens.btfss] = btfss;
+            Befehlsfunktionen[tokens.addlw] = addlw;
+            Befehlsfunktionen[tokens.andlw] = andlw;
+            Befehlsfunktionen[tokens.call] = call;
+            Befehlsfunktionen[tokens.clrwdt] = clrwdt;
+            Befehlsfunktionen[tokens._goto] = _goto;
+            Befehlsfunktionen[tokens.iorlw] = iorlw;
+            Befehlsfunktionen[tokens.movlw] = movlw;
+            Befehlsfunktionen[tokens.retfie] = retfie;
+            Befehlsfunktionen[tokens.retlw] = retlw;
+            Befehlsfunktionen[tokens._return] = _return;
+            Befehlsfunktionen[tokens.sleep] = sleep;
+            Befehlsfunktionen[tokens.sublw] = sublw;
+            Befehlsfunktionen[tokens.xorlw] = xorlw;
+
+            //Bei SFR datagrids eine Zeile hinzufügen
+            dataGridView_status.Rows.Add();
+            dataGridView_option.Rows.Add();
+            dataGridView_intcon.Rows.Add();
+
+            //label für SFR mit Werten belegen
+            update_SpecialFunctionRegister();
+
+            //TODO Datagrid für PortA und PortB konfigurieren
         }
 
         
@@ -311,6 +375,7 @@ namespace PIC_Simulator
             //test_datagrid_fonts();
             //test_timer();
             //test_datagrid_zeile_markieren();
+            MessageBox.Show(dataGridView_status.Rows.Count.ToString()+" "+dataGridView_status.ColumnCount.ToString());
         }
 
 
@@ -1302,9 +1367,9 @@ namespace PIC_Simulator
 
         public void test_datagrid_zeilenname()
         {
-            dataGridView1.Rows[0].HeaderCell.Value = "test";
-            dataGridView1.Rows[1].HeaderCell.Value = "07";
-            dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            dataGridView_Speicher.Rows[0].HeaderCell.Value = "test";
+            dataGridView_Speicher.Rows[1].HeaderCell.Value = "07";
+            dataGridView_Speicher.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
         }
 
         public void test_Spalten_headergröße()
@@ -1312,14 +1377,14 @@ namespace PIC_Simulator
             DialogResult result = DialogResult.OK;
             while (result == DialogResult.OK) 
             {
-                dataGridView1.RowHeadersWidth += 1;
-                result = MessageBox.Show(dataGridView1.RowHeadersWidth.ToString(), "test", MessageBoxButtons.OKCancel);
+                dataGridView_Speicher.RowHeadersWidth += 1;
+                result = MessageBox.Show(dataGridView_Speicher.RowHeadersWidth.ToString(), "test", MessageBoxButtons.OKCancel);
             } 
         }
         public void test_datagrid_fonts()
         {
-            dataGridView2.Columns[0].DefaultCellStyle.Font = new Font("Arial", 20, GraphicsUnit.Pixel);
-            dataGridView2[0, 0].Value = "B";
+            dataGridView_code.Columns[0].DefaultCellStyle.Font = new Font("Arial", 20, GraphicsUnit.Pixel);
+            dataGridView_code[0, 0].Value = "B";
         }
         public void test_timer()
         {
@@ -1330,8 +1395,8 @@ namespace PIC_Simulator
         }
         public void test_datagrid_zeile_markieren()
         {
-            dataGridView2.ClearSelection();
-            dataGridView2.Rows[3].Selected = true;
+            dataGridView_code.ClearSelection();
+            dataGridView_code.Rows[3].Selected = true;
         }
 
         //Testfunktionen Ende
@@ -1341,7 +1406,7 @@ namespace PIC_Simulator
         {
             //Power-on-Reset
             reset = true;
-            lade_Speicher_Startzustand();
+            Power_On_Reset();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -1387,19 +1452,19 @@ namespace PIC_Simulator
                 if(breakpoint[temp])
                 {
                     breakpoint[temp] = false;
-                    dataGridView2[0, e.RowIndex].Value = "";
+                    dataGridView_code[0, e.RowIndex].Value = "";
                 }
                 else
                 {
                     breakpoint[temp] = true;
-                    dataGridView2[0, e.RowIndex].Value = "B";
+                    dataGridView_code[0, e.RowIndex].Value = "B";
                 }
             }
         }
         public void markiere_zeile(int zeilennummer)
         {
-            dataGridView2.ClearSelection();
-            dataGridView2.Rows[zeilennummer].Selected = true;
+            dataGridView_code.ClearSelection();
+            dataGridView_code.Rows[zeilennummer].Selected = true;
         }
 
 
@@ -1433,7 +1498,7 @@ namespace PIC_Simulator
             {
                 reset = false;
                 Programm_start(false);
-                lade_Speicher_Startzustand();
+                Power_On_Reset();
             }
             if (stepout && (befehl == tokens.retfie || befehl == tokens.retlw || befehl == tokens._return)) 
             {
@@ -1444,7 +1509,7 @@ namespace PIC_Simulator
             {
                 stepover = false;
                 Programm_start(false);
-                dataGridView2[0, codezeile[temp_breakpoint]].Value = "";
+                dataGridView_code[0, codezeile[temp_breakpoint]].Value = "";
                 temp_breakpoint = -1;
             }
             //nächste Zeile markieren
@@ -1484,7 +1549,7 @@ namespace PIC_Simulator
             temp_breakpoint = PC_ausgeben() + 1;
             PC_setzen(0);
             markiere_zeile(codezeile[PC_ausgeben()]);
-            dataGridView2[0, codezeile[temp_breakpoint]].Value = "b";
+            dataGridView_code[0, codezeile[temp_breakpoint]].Value = "b";
             Programm_start(true);
         }
 
@@ -1494,8 +1559,81 @@ namespace PIC_Simulator
             label_fsr.Text = Speicher[Register.fsr].ToString("X2");
             label_pcl.Text = Speicher[Register.pcl].ToString("X2");
             label_pclath.Text = Speicher[Register.pclath].ToString("X2");
-            label_pc.Text = PC_ausgeben().ToString("X2");
+            label_pc.Text = PC_ausgeben().ToString("X4");
             label_status.Text = Speicher[Register.status].ToString("X2");
+            label_option.Text = Speicher[Register.option_reg].ToString("X2");
+            label_intcon.Text = Speicher[Register.intcon].ToString("X2");
+            //status, option, intcon datagrids mit Werten belegen
+            for (int i = 0; i < 8; i++)
+            {
+                //status
+                if (bit_gesetzt(Register.status, 7 - i))
+                    dataGridView_status[i, 0].Value = "1";
+                else
+                    dataGridView_status[i, 0].Value = "0";
+                //option
+                if (bit_gesetzt(Register.option_reg, 7 - i))
+                    dataGridView_option[i, 0].Value = "1";
+                else
+                    dataGridView_option[i, 0].Value = "0";
+                //intcon
+                if (bit_gesetzt(Register.intcon, 7 - i))
+                    dataGridView_intcon[i, 0].Value = "1";
+                else
+                    dataGridView_intcon[i, 0].Value = "0";
+            }
+                
+        }
+
+        private void hilfeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Dokumentation öffnen
+            System.Diagnostics.Process.Start("PIC-Simulator.pdf");
+        }
+
+        private void dataGridView_status_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dataGridView_status[e.ColumnIndex, 0].Value == "1")
+            {
+                dataGridView_status[e.ColumnIndex, 0].Value = "0";
+                bit_löschen(Register.status, 7 - e.ColumnIndex);
+            }
+            else
+            {
+                dataGridView_status[e.ColumnIndex, 0].Value = "1";
+                bit_setzen(Register.status, 7 - e.ColumnIndex);
+            }
+            update_SpecialFunctionRegister();
+        }
+
+        private void dataGridView_option_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dataGridView_option[e.ColumnIndex, 0].Value == "1")
+            {
+                dataGridView_option[e.ColumnIndex, 0].Value = "0";
+                bit_löschen(Register.option_reg, 7 - e.ColumnIndex);
+            }
+            else
+            {
+                dataGridView_option[e.ColumnIndex, 0].Value = "1";
+                bit_setzen(Register.option_reg, 7 - e.ColumnIndex);
+            }
+            update_SpecialFunctionRegister();
+        }
+
+        private void dataGridView_intcon_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dataGridView_intcon[e.ColumnIndex, 0].Value == "1")
+            {
+                dataGridView_intcon[e.ColumnIndex, 0].Value = "0";
+                bit_löschen(Register.intcon, 7 - e.ColumnIndex);
+            }
+            else
+            {
+                dataGridView_intcon[e.ColumnIndex, 0].Value = "1";
+                bit_setzen(Register.intcon, 7 - e.ColumnIndex);
+            }
+            update_SpecialFunctionRegister();
         }
         
 
