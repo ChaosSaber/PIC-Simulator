@@ -17,6 +17,7 @@ using System.IO;
  * irgendwas mit TRISA und TRISB
  * EEPROM Funktionen (Z)
  * RB-Interrupt nur bei Input Pins.
+ * Funktionsgenerator
  */
 
 
@@ -1701,6 +1702,13 @@ namespace PIC_Simulator
             else
                 bit_setzen(register, 7 - e.ColumnIndex);
             update_port_datagrids();
+        }
+
+        private void groupBox_funktionsgenerator_Enter(object sender, EventArgs e)
+        {
+            //TODO form zum editieren der Dateien
+            //evtl. besseren finden
+            MessageBox.Show("test");
         }
         
 
