@@ -15,19 +15,19 @@ using System.IO;
  * WDT (Z)
  * WDT prescaler (Z)
  * irgendwas mit TRISA und TRISB
- * externer / interner Takt am TMR0-Pin incl. Vorteiler
  * EEPROM Funktionen (Z)
- * Speicherwert der register bei Reset==bei Start?
+ * RB-Interrupt nur bei Input Pins.
+ */
+
+
+/*
+ * TODO Fragen
  * fragen zum Steuerpult step out, step over,...
+ * Quarzfreguenz + laufzeitzähler
+ * Wie weit bezüglich input/output PortA/PortB
+ * PortA 5-Bit Wide?
+ * Writing to Porta will write to the Port-latch manual Seite 17
  */
-
-/* TODO René
- */
-
-/* TODO Felix
- * laufzeitzähler
- */
-
 
 
 
@@ -123,6 +123,9 @@ namespace PIC_Simulator
             
             Code_anzeigen();
             Speicher_grid_anzeigen();
+            markiere_zeile(codezeile[0]);
+            update_port_datagrids();
+            update_SpecialFunctionRegister();
 
             //Button für reset, start und step enablen
             StartStopButton.Enabled = true;
@@ -262,11 +265,6 @@ namespace PIC_Simulator
             }
         }
 
-        private void richTextBox1_TextChanged(object sender, EventArgs e)
-        {
-            //wird nicht genutzt, versehentlich erstellt
-        }
-
         private void ladenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             openFileDialog1.Filter = "lst files (*.lst)|*.lst";
@@ -278,11 +276,6 @@ namespace PIC_Simulator
                     laden(openFileDialog1.FileName);
                 }
             }
-        }
-
-        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
-        {
-            //wird nicht genutzt, versehentlich erstellt
         }
 
         private void schließenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -355,7 +348,20 @@ namespace PIC_Simulator
             //label für SFR mit Werten belegen
             update_SpecialFunctionRegister();
 
-            //TODO Datagrid für PortA und PortB konfigurieren
+            //Datagrid für PortA und PortB konfigurieren
+            dataGridView_PortA.TopLeftHeaderCell.Value = "RA";
+            dataGridView_PortA.Rows.Add();
+            dataGridView_PortA.Rows.Add();
+            dataGridView_PortA.Rows[0].HeaderCell.Value = "TrisA";
+            dataGridView_PortA.Rows[1].HeaderCell.Value = "PortA";
+            dataGridView_PortB.TopLeftHeaderCell.Value = "RB";
+            dataGridView_PortB.Rows.Add();
+            dataGridView_PortB.Rows.Add();
+            dataGridView_PortB.Rows[0].HeaderCell.Value = "TrisB";
+            dataGridView_PortB.Rows[1].HeaderCell.Value = "PortB";
+
+            //Datagrid für PortA und PortB mit Werten belegen
+            update_port_datagrids();
         }
 
         
@@ -375,7 +381,13 @@ namespace PIC_Simulator
             //test_datagrid_fonts();
             //test_timer();
             //test_datagrid_zeile_markieren();
-            MessageBox.Show(dataGridView_status.Rows.Count.ToString()+" "+dataGridView_status.ColumnCount.ToString());
+            DialogResult result = MessageBox.Show("test",dataGridView_PortA.Size.Height.ToString(),MessageBoxButtons.OKCancel);
+            while(result==DialogResult.OK)
+            {
+                dataGridView_PortA.Height--;
+                result = MessageBox.Show("test", dataGridView_PortA.Size.Height.ToString(), MessageBoxButtons.OKCancel);
+            }
+            
         }
 
 
@@ -1129,78 +1141,6 @@ namespace PIC_Simulator
 
 
 
-
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            //falschen Eventhandler erstellt
-        }
-
-        // Register ändern wenn man in das Datagrid klickt
-        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            int register = e.RowIndex * 8 + e.ColumnIndex;
-            string input = "";
-            DialogResult result = ShowInputDialog(ref input,register);
-            if (result == DialogResult.OK)
-            {
-                int temp = Convert.ToInt32(input, 16);
-                Speicher[register] = (Byte)temp;
-                Speicher_grid_updaten(register);
-            }
-        }
-
-        //öffnet eine neue Form mit Editfeld, OK-Button und einem Cancel-Button
-        //wird genutzt, da eine Messagebox kein Editfeld enthalten kann.
-        private static DialogResult ShowInputDialog(ref string input,int register)
-        {
-            System.Drawing.Size size = new System.Drawing.Size(165, 100);
-            Form inputBox = new Form();
-
-            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            inputBox.ClientSize = size;
-            inputBox.Text = "Registerspeicher ändern";
-            inputBox.ControlBox = false;
-
-            System.Windows.Forms.Label label = new Label();
-            label.Location = new System.Drawing.Point(2, 5);
-            label.Visible = true;
-            label.Text = "    Bitte geben sie den Wert als\n     Hexwert ein, den sie in das\nRegister " + register.ToString("X2") + "H speichern möchten";
-            label.Size = new Size(label.PreferredWidth, label.PreferredHeight);
-            inputBox.Controls.Add(label);
-
-            System.Windows.Forms.TextBox textBox = new TextBox();
-            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
-            textBox.Location = new System.Drawing.Point(5, 48);
-            textBox.Text = "0";
-            inputBox.Controls.Add(textBox);
-
-            Button okButton = new Button();
-            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-            okButton.Name = "okButton";
-            okButton.Size = new System.Drawing.Size(75, 23);
-            okButton.Text = "&OK";
-            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 74);
-            inputBox.Controls.Add(okButton);
-
-            Button cancelButton = new Button();
-            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            cancelButton.Name = "cancelButton";
-            cancelButton.Size = new System.Drawing.Size(75, 23);
-            cancelButton.Text = "&Cancel";
-            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 74);
-            inputBox.Controls.Add(cancelButton);
-
-            inputBox.AcceptButton = okButton;
-            inputBox.CancelButton = cancelButton;
-
-            DialogResult result = inputBox.ShowDialog();
-            input = textBox.Text;
-            return result;
-        }
-
-
-
         /*************************************************************************************************************/
         //Timer0 
 
@@ -1404,9 +1344,11 @@ namespace PIC_Simulator
 
         private void button5_Click(object sender, EventArgs e)
         {
-            //Power-on-Reset
+            //TODO welcher Reset?
             reset = true;
             Power_On_Reset();
+            Programm_start(false);
+            markiere_zeile(codezeile[PC_ausgeben()]);
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -1414,15 +1356,9 @@ namespace PIC_Simulator
             //startet das Programm bis entweder ein Breakpoint erreicht wird oder die Go-Taste erneut
             //betätigt wird. Ein Reset (F2) ist auch möglich.
             if (programmtimer.Enabled)
-            {
-                StartStopButton.Text = "Start";
                 Programm_start(false);
-            }
             else
-            {
-                StartStopButton.Text = "Stop";
                 Programm_start(true);
-            }
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -1461,10 +1397,19 @@ namespace PIC_Simulator
                 }
             }
         }
+        public void Zeile_anzeigen(int zeilennummer)
+        {
+            //macht die aktuelle Zeile zur ersten angezeigten Zeile, sofern sie außerhalb des angezeigten Bereichs ist
+            if (zeilennummer < dataGridView_code.FirstDisplayedCell.RowIndex || zeilennummer > dataGridView_code.FirstDisplayedCell.RowIndex + 15)
+                dataGridView_code.FirstDisplayedCell = dataGridView_code[0, zeilennummer];
+        }
+
         public void markiere_zeile(int zeilennummer)
         {
             dataGridView_code.ClearSelection();
             dataGridView_code.Rows[zeilennummer].Selected = true;
+            //TODO Funktion:erst mitscrollen wenn Zeile den Bildschrimverlässt;
+            Zeile_anzeigen(zeilennummer);
         }
 
 
@@ -1475,12 +1420,14 @@ namespace PIC_Simulator
                 programmtimer.Enabled = true;
                 interrupttimer.Enabled = true;
                 timer0_counter.Enabled = true;
+                StartStopButton.Text = "Stop";
             }
             else
             {
                 programmtimer.Enabled = false;
                 interrupttimer.Enabled = false;
                 timer0_counter.Enabled = false;
+                StartStopButton.Text = "Start";
             }
         }
 
@@ -1515,6 +1462,7 @@ namespace PIC_Simulator
             //nächste Zeile markieren
             markiere_zeile(codezeile[PC_ausgeben()]);
             update_SpecialFunctionRegister();
+            update_port_datagrids();
         }
 
         private void IgnoreButton_Click(object sender, EventArgs e)
@@ -1585,6 +1533,35 @@ namespace PIC_Simulator
                 
         }
 
+        public void update_port_datagrids()
+        {
+            for(int i=0;i<8;i++)
+            {
+                //TRIS 1 = i(nput); 0 = o(utput)
+
+                //datagrid portA
+                if (bit_gesetzt(Register.porta, 7 - i))
+                    dataGridView_PortA[i, 1].Value = "1";
+                else
+                    dataGridView_PortA[i, 1].Value = "0";
+                //datagrid TrisA
+                if (bit_gesetzt(Register.trisa, 7 - i))
+                    dataGridView_PortA[i, 0].Value = "i";
+                else
+                    dataGridView_PortA[i, 0].Value = "o";
+                //datagrid PortB
+                if (bit_gesetzt(Register.portb, 7 - i))
+                    dataGridView_PortB[i, 1].Value = "1";
+                else
+                    dataGridView_PortB[i, 1].Value = "0";
+                //datagrid TrisB
+                if (bit_gesetzt(Register.trisb, 7 - i))
+                    dataGridView_PortB[i, 0].Value = "i";
+                else
+                    dataGridView_PortB[i, 0].Value = "o";
+            }
+        }
+
         private void hilfeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //Dokumentation öffnen
@@ -1593,7 +1570,7 @@ namespace PIC_Simulator
 
         private void dataGridView_status_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (dataGridView_status[e.ColumnIndex, 0].Value == "1")
+            if (dataGridView_status[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_status[e.ColumnIndex, 0].Value = "0";
                 bit_löschen(Register.status, 7 - e.ColumnIndex);
@@ -1608,7 +1585,7 @@ namespace PIC_Simulator
 
         private void dataGridView_option_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (dataGridView_option[e.ColumnIndex, 0].Value == "1")
+            if (dataGridView_option[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_option[e.ColumnIndex, 0].Value = "0";
                 bit_löschen(Register.option_reg, 7 - e.ColumnIndex);
@@ -1623,7 +1600,7 @@ namespace PIC_Simulator
 
         private void dataGridView_intcon_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (dataGridView_intcon[e.ColumnIndex, 0].Value == "1")
+            if (dataGridView_intcon[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_intcon[e.ColumnIndex, 0].Value = "0";
                 bit_löschen(Register.intcon, 7 - e.ColumnIndex);
@@ -1634,6 +1611,96 @@ namespace PIC_Simulator
                 bit_setzen(Register.intcon, 7 - e.ColumnIndex);
             }
             update_SpecialFunctionRegister();
+        }
+
+        private void dataGridView_Speicher_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int register = e.RowIndex * 8 + e.ColumnIndex;
+            string input = "";
+            DialogResult result = ShowInputDialog(ref input, register);
+            if (result == DialogResult.OK)
+            {
+                int temp = Convert.ToInt32(input, 16);
+                Speicher[register] = (Byte)temp;
+                Speicher_grid_updaten(register);
+            }
+        }
+
+        //öffnet eine neue Form mit Editfeld, OK-Button und einem Cancel-Button
+        //wird genutzt, da eine Messagebox kein Editfeld enthalten kann.
+        private static DialogResult ShowInputDialog(ref string input, int register)
+        {
+            System.Drawing.Size size = new System.Drawing.Size(165, 100);
+            Form inputBox = new Form();
+
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+            inputBox.Text = "Registerspeicher ändern";
+            inputBox.ControlBox = false;
+
+            System.Windows.Forms.Label label = new Label();
+            label.Location = new System.Drawing.Point(2, 5);
+            label.Visible = true;
+            label.Text = "    Bitte geben sie den Wert als\n     Hexwert ein, den sie in das\nRegister " + register.ToString("X2") + "H speichern möchten";
+            label.Size = new Size(label.PreferredWidth, label.PreferredHeight);
+            inputBox.Controls.Add(label);
+
+            System.Windows.Forms.TextBox textBox = new TextBox();
+            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
+            textBox.Location = new System.Drawing.Point(5, 48);
+            textBox.Text = "0";
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 74);
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Cancel";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 74);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog();
+            input = textBox.Text;
+            return result;
+        }
+
+        private void dataGridView_PortA_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int register;
+            if (e.RowIndex == 0)
+                register = Register.trisa;
+            else
+                register = Register.porta;
+            if (bit_gesetzt(register, 7 - e.ColumnIndex))
+                bit_löschen(register, 7 - e.ColumnIndex);
+            else
+                bit_setzen(register, 7 - e.ColumnIndex);
+            update_port_datagrids();
+        }
+
+        private void dataGridView_PortB_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int register;
+            if (e.RowIndex == 0)
+                register = Register.trisb;
+            else
+                register = Register.portb;
+            if (bit_gesetzt(register, 7 - e.ColumnIndex))
+                bit_löschen(register, 7 - e.ColumnIndex);
+            else
+                bit_setzen(register, 7 - e.ColumnIndex);
+            update_port_datagrids();
         }
         
 
