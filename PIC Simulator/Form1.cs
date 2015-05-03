@@ -55,6 +55,12 @@ namespace PIC_Simulator
         Boolean stepout = false;//wenn dieser wert true ist wird das laufende Programm abgebrochen sobald es auf ein return trifft;
         Boolean stepover = false;//bestimmt ob sich das Programm im stepovermodus befindet
         int temp_breakpoint = -1;//temporärer Breakpoint für stepover
+        String contextmenustrip_aufrufer = "";
+        //Funktionsgenerator Variablen
+        int FG_pin = Pins.nc;
+        double FG_frequenz = 20;
+        int FG_verhältnis = 1;//noch nicht implementiert
+
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
@@ -382,13 +388,7 @@ namespace PIC_Simulator
             //test_datagrid_fonts();
             //test_timer();
             //test_datagrid_zeile_markieren();
-            DialogResult result = MessageBox.Show("test",dataGridView_PortA.Size.Height.ToString(),MessageBoxButtons.OKCancel);
-            while(result==DialogResult.OK)
-            {
-                dataGridView_PortA.Height--;
-                result = MessageBox.Show("test", dataGridView_PortA.Size.Height.ToString(), MessageBoxButtons.OKCancel);
-            }
-            
+            MessageBox.Show(FG_frequenz.ToString());
         }
 
 
@@ -1707,11 +1707,199 @@ namespace PIC_Simulator
         private void groupBox_funktionsgenerator_Enter(object sender, EventArgs e)
         {
             //TODO form zum editieren der Dateien
-            //evtl. besseren finden
-            MessageBox.Show("test");
+            //evtl. besseren eventhandler finden
         }
+        private static DialogResult Show_Funktionsgenerator(ref string input, int register)
+        {
+            //TODO, falls die Änderungen des Funktionsgenerators etwas Schicker ändern zu wollen dann das vervolständigen
+            System.Drawing.Size size = new System.Drawing.Size(165, 200);
+            Form inputBox = new Form();
+
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+            inputBox.Text = "Funktionsgenerator";
+            inputBox.ControlBox = false;
+
+            DataGridViewTextBoxColumn Wert = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            DataGridView GridFunktionsgenerator = new DataGridView();
+            GridFunktionsgenerator.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+                Wert});
+            for (int i = 0; i < 3; i++)
+                GridFunktionsgenerator.Rows.Add();
+            GridFunktionsgenerator.TopLeftHeaderCell.Value = "Kanal1";
+            GridFunktionsgenerator.Rows[0].HeaderCell.Value = "Port-Pin";
+            GridFunktionsgenerator.Rows[1].HeaderCell.Value = "Frequenz(Khz)";
+            GridFunktionsgenerator.Rows[2].HeaderCell.Value = "Tastverhältnis";
+
+
+            Button okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 174);
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Cancel";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 174);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog();
+            return result;
+        }
+
+        private void textBox_FG_frequenz_TextChanged(object sender, EventArgs e)
+        {
+            //TODO nicht das optimalste, aber funktioniert erstmal
+            try
+            {
+                FG_frequenz = Convert.ToDouble(textBox_FG_frequenz.Text.ToString());
+            }
+            catch(Exception E)
+            {
+                MessageBox.Show("Bitte geben sie eine Integerzahl ein");
+                textBox_FG_frequenz.Text = FG_frequenz.ToString();
+            }
+            if (FG_frequenz <= 0)
+            {
+                MessageBox.Show("Bitte geben sie eine ganze Zahl größer 0 an");
+                FG_frequenz = Math.Abs(FG_frequenz);
+                textBox_FG_frequenz.Text = FG_frequenz.ToString();
+            }
+            else if (FG_frequenz > 1000) 
+            {
+                MessageBox.Show("Bitte geben sie eine ganze Zahl größer 0 an und kleinergleich 1000");
+                FG_frequenz = 1000;
+                textBox_FG_frequenz.Text = "1000";
+            }
+            else
+            {
+                timer_Funktionsgenerator.Interval = (int)(1000 / FG_frequenz);
+            }
+        }
+
+        private void nctoolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.nc);
+        }
+
+        private void rA0ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA0);
+        }
+
+        private void rA1ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA1);
+        }
+
+        private void rA2ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA2);
+        }
+
+        private void rA3ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA3);
+        }
+
+        private void rA4ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA4);
+        }
+
+        private void rA5ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA5);
+        }
+
+        private void rA6ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA6);
+        }
+
+        private void rA7ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RA7);
+        }
+
+        private void rB0ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB0);
+        }
+
+        private void rB1ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB1);
+        }
+
+        private void rB2ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB2);
+        }
+
+        private void rB3ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB3);
+        }
+
+        private void rB4ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB4);
+        }
+
+        private void rB5ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB5);
+        }
+
+        private void rB6ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB6);
+        }
+
+        private void rB7ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Pinänderung(Pins.RB7);
+        }
+
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+        {
+            contextmenustrip_aufrufer = contextMenuStrip1.SourceControl.Name;
+        }
+
+        public void Pinänderung(int pin)
+        {
+            if(contextmenustrip_aufrufer=="textBox_FG_pin")
+            {
+                FG_pin = pin;
+                textBox_FG_pin.Text = Pins.ToString(pin);
+            }
+        }
+
+        private void timer_Funktionsgenerator_Tick(object sender, EventArgs e)
+        {
+            if(FG_pin>2)
+            {
+                if (bit_gesetzt(FG_pin / 10, FG_pin % 10))
+                    bit_löschen(FG_pin / 10, FG_pin % 10);
+                else
+                    bit_setzen(FG_pin / 10, FG_pin % 10);
+                update_port_datagrids();
+                Speicher_grid_updaten(FG_pin / 10);
+            }
+        }
+
         
 
+        
         
     }
 }
