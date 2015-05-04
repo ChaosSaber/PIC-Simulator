@@ -18,16 +18,17 @@ using System.IO;
  * EEPROM Funktionen (Z)
  * RB-Interrupt nur bei Input Pins.
  * Funktionsgenerator
+ * timer mit microsecondtimers austauschen: http://www.codeproject.com/Articles/98346/Microsecond-and-Millisecond-NET-Timer
+ * 
  */
 
 
 /*
  * TODO Fragen
- * fragen zum Steuerpult step out, step over,...
+ * fragen zum Steuerpult step out, step over,... (so schnell wie möglich)
  * Quarzfreguenz + laufzeitzähler
- * Wie weit bezüglich input/output PortA/PortB
- * PortA 5-Bit Wide?
- * Writing to Porta will write to the Port-latch manual Seite 17
+ * Wie weit bezüglich input/output PortA/PortB (schreiben zu einem input schreibt in den Latch,sobald auf Input umgeschalten wird, wird der latch in den Port geladen)
+ * PortA 5-Bit Wide? (PortA<7:5> existieren, aber nicht anzeigen)
  */
 
 
@@ -50,7 +51,7 @@ namespace PIC_Simulator
         Byte RB_alt = 0; //alter Stand(vom letzten Programmzyklus) des Port B, wird für Interrupt benötigt;
         Byte Timer0_alt = 0; //alter Stand(vom letzten Programmzyklus) des Timer0, wird für Interrupt benötigt
         Byte RB0_alt = 0; //alter Stand(vom letzten Programmzyklus) des RB0-Bit, wird für Interrupt benötigt
-        Boolean[] breakpoint;//TODO initialisierung//Boolwert ob die Zeile einen Breakpoint enthält
+        Boolean[] breakpoint;//Boolwert ob die Zeile einen Breakpoint enthält
         Boolean reset = false;//wenn dieser Wert true ist wird das laufende Programm abgebrochen
         Boolean stepout = false;//wenn dieser wert true ist wird das laufende Programm abgebrochen sobald es auf ein return trifft;
         Boolean stepover = false;//bestimmt ob sich das Programm im stepovermodus befindet
@@ -607,10 +608,6 @@ namespace PIC_Simulator
             //Statusbits:
             //IRP=7;RP1=6;RP0=5;TO(quer)=4;PD(quer)=3;Z=2;DC=1;C=0
 
-        /***************/
-        //TODO
-        //WDT
-        //WDT prescaler
 
         public void addwf(int codezeile)
         {
@@ -749,7 +746,7 @@ namespace PIC_Simulator
         }
 
         public void movf(int codezeile)
-        {//TODO wird hier auch PCLATH ins PCH wenn f==PCL
+        {
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
@@ -1068,8 +1065,7 @@ namespace PIC_Simulator
             rbif_setzen();
             
         }
-        //TODO am Anfang von jedem Programmzyklus ausführen
-        //prüft ob ein Interrupt ausgeführt werden
+        //prüft ob ein Interrupt ausgeführt werden muss
         //wenn ja wird der PC auf Stelle 4 gesetzt 
         public void Interrupt()
         {
@@ -1343,7 +1339,7 @@ namespace PIC_Simulator
         //Testfunktionen Ende
         /***************************************************************************************************/
 
-        private void button5_Click(object sender, EventArgs e)
+        private void ResetButton_Click(object sender, EventArgs e)
         {
             //TODO welcher Reset?
             reset = true;
@@ -1352,7 +1348,7 @@ namespace PIC_Simulator
             markiere_zeile(codezeile[PC_ausgeben()]);
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void StartStopButton_Click(object sender, EventArgs e)
         {
             //startet das Programm bis entweder ein Breakpoint erreicht wird oder die Go-Taste erneut
             //betätigt wird. Ein Reset (F2) ist auch möglich.
@@ -1361,12 +1357,6 @@ namespace PIC_Simulator
             else
                 Programm_start(true);
         }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            programmtimer.Enabled = false;
-        }
-
 
         public int ist_codezeile(int zeile)
         {
@@ -1409,7 +1399,6 @@ namespace PIC_Simulator
         {
             dataGridView_code.ClearSelection();
             dataGridView_code.Rows[zeilennummer].Selected = true;
-            //TODO Funktion:erst mitscrollen wenn Zeile den Bildschrimverlässt;
             Zeile_anzeigen(zeilennummer);
         }
 
@@ -1706,13 +1695,12 @@ namespace PIC_Simulator
 
         private void groupBox_funktionsgenerator_Enter(object sender, EventArgs e)
         {
-            //TODO form zum editieren der Dateien
-            //evtl. besseren eventhandler finden
+            Show_Funktionsgenerator();
         }
-        private static DialogResult Show_Funktionsgenerator(ref string input, int register)
+        private static DialogResult Show_Funktionsgenerator()
         {
             //TODO, falls die Änderungen des Funktionsgenerators etwas Schicker ändern zu wollen dann das vervolständigen
-            System.Drawing.Size size = new System.Drawing.Size(165, 200);
+            System.Drawing.Size size = new System.Drawing.Size(187, 144);
             Form inputBox = new Form();
 
             inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -1720,16 +1708,32 @@ namespace PIC_Simulator
             inputBox.Text = "Funktionsgenerator";
             inputBox.ControlBox = false;
 
-            DataGridViewTextBoxColumn Wert = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            DataGridView GridFunktionsgenerator = new DataGridView();
-            GridFunktionsgenerator.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-                Wert});
-            for (int i = 0; i < 3; i++)
-                GridFunktionsgenerator.Rows.Add();
-            GridFunktionsgenerator.TopLeftHeaderCell.Value = "Kanal1";
-            GridFunktionsgenerator.Rows[0].HeaderCell.Value = "Port-Pin";
-            GridFunktionsgenerator.Rows[1].HeaderCell.Value = "Frequenz(Khz)";
-            GridFunktionsgenerator.Rows[2].HeaderCell.Value = "Tastverhältnis";
+            DataGridView dataGridView_FG = new System.Windows.Forms.DataGridView();
+            DataGridViewTextBoxColumn Kanal1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            dataGridView_FG.AllowUserToAddRows = false;
+            dataGridView_FG.AllowUserToDeleteRows = false;
+            dataGridView_FG.AllowUserToResizeColumns = false;
+            dataGridView_FG.AllowUserToResizeRows = false;
+            dataGridView_FG.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView_FG.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            Kanal1});
+            dataGridView_FG.Location = new System.Drawing.Point(12, 12);
+            dataGridView_FG.Name = "dataGridView_FG";
+            dataGridView_FG.RowHeadersWidth = 100;
+            dataGridView_FG.RowTemplate.Height = 24;
+            dataGridView_FG.ScrollBars = System.Windows.Forms.ScrollBars.None;
+            dataGridView_FG.Size = new System.Drawing.Size(165, 95);
+            dataGridView_FG.TabIndex = 0;
+            dataGridView_FG.Rows.Add();
+            dataGridView_FG.Rows.Add();
+            dataGridView_FG.Rows.Add();
+            dataGridView_FG.Rows[0].HeaderCell.Value = "Port-Pin";
+            dataGridView_FG.Rows[1].HeaderCell.Value = "Frequenz(Hz)";
+            dataGridView_FG.Rows[2].HeaderCell.Value = "Verhältnis";
+            Kanal1.HeaderText = "Kanal1";
+            Kanal1.Name = "Kanal1";
+            Kanal1.Width = 65;
+            inputBox.Controls.Add(dataGridView_FG);
 
 
             Button okButton = new Button();
@@ -1737,7 +1741,7 @@ namespace PIC_Simulator
             okButton.Name = "okButton";
             okButton.Size = new System.Drawing.Size(75, 23);
             okButton.Text = "&OK";
-            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 174);
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 112);
             inputBox.Controls.Add(okButton);
 
             Button cancelButton = new Button();
@@ -1745,7 +1749,7 @@ namespace PIC_Simulator
             cancelButton.Name = "cancelButton";
             cancelButton.Size = new System.Drawing.Size(75, 23);
             cancelButton.Text = "&Cancel";
-            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 174);
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 112);
             inputBox.Controls.Add(cancelButton);
 
             inputBox.AcceptButton = okButton;
