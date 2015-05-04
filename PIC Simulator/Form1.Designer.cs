@@ -111,9 +111,6 @@
             this.interrupttimer = new System.Windows.Forms.Timer(this.components);
             this.timer0_counter = new System.Windows.Forms.Timer(this.components);
             this.dataGridView_PortA = new System.Windows.Forms.DataGridView();
-            this._7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this._6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this._5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this._4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this._3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this._2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -163,6 +160,13 @@
             this.rB6ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rB7ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timer_Funktionsgenerator = new System.Windows.Forms.Timer(this.components);
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.button2 = new System.Windows.Forms.Button();
+            this.label_laufzeit = new System.Windows.Forms.Label();
+            this.comboBox_quarzfrequenz = new System.Windows.Forms.ComboBox();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label_quarzfrquenz = new System.Windows.Forms.Label();
+            this.einstellungenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_Speicher)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -175,6 +179,8 @@
             this.groupBox2.SuspendLayout();
             this.groupBox_funktionsgenerator.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -195,6 +201,7 @@
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.dateiToolStripMenuItem,
+            this.einstellungenToolStripMenuItem,
             this.hilfeToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -239,7 +246,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(1581, 233);
+            this.button1.Location = new System.Drawing.Point(989, 140);
             this.button1.Margin = new System.Windows.Forms.Padding(4);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(100, 28);
@@ -970,9 +977,6 @@
             this.dataGridView_PortA.AllowUserToResizeRows = false;
             this.dataGridView_PortA.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView_PortA.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this._7,
-            this._6,
-            this._5,
             this._4,
             this._3,
             this._2,
@@ -995,31 +999,10 @@
             this.dataGridView_PortA.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridView_PortA.ScrollBars = System.Windows.Forms.ScrollBars.None;
             this.dataGridView_PortA.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.dataGridView_PortA.Size = new System.Drawing.Size(245, 81);
+            this.dataGridView_PortA.Size = new System.Drawing.Size(185, 81);
             this.dataGridView_PortA.TabIndex = 19;
             this.dataGridView_PortA.TabStop = false;
             this.dataGridView_PortA.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_PortA_CellClick);
-            // 
-            // _7
-            // 
-            this._7.HeaderText = "7";
-            this._7.Name = "_7";
-            this._7.ReadOnly = true;
-            this._7.Width = 15;
-            // 
-            // _6
-            // 
-            this._6.HeaderText = "6";
-            this._6.Name = "_6";
-            this._6.ReadOnly = true;
-            this._6.Width = 15;
-            // 
-            // _5
-            // 
-            this._5.HeaderText = "5";
-            this._5.Name = "_5";
-            this._5.ReadOnly = true;
-            this._5.Width = 15;
             // 
             // _4
             // 
@@ -1485,12 +1468,79 @@
             this.timer_Funktionsgenerator.Interval = 50;
             this.timer_Funktionsgenerator.Tick += new System.EventHandler(this.timer_Funktionsgenerator_Tick);
             // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.button2);
+            this.groupBox3.Controls.Add(this.label_laufzeit);
+            this.groupBox3.Location = new System.Drawing.Point(713, 152);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(138, 69);
+            this.groupBox3.TabIndex = 23;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Laufzeit";
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(1, 38);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(126, 23);
+            this.button2.TabIndex = 2;
+            this.button2.Text = "zurücksetzen";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // label_laufzeit
+            // 
+            this.label_laufzeit.AutoSize = true;
+            this.label_laufzeit.Location = new System.Drawing.Point(6, 18);
+            this.label_laufzeit.Name = "label_laufzeit";
+            this.label_laufzeit.Size = new System.Drawing.Size(54, 17);
+            this.label_laufzeit.TabIndex = 0;
+            this.label_laufzeit.Text = "label12";
+            // 
+            // comboBox_quarzfrequenz
+            // 
+            this.comboBox_quarzfrequenz.FormattingEnabled = true;
+            this.comboBox_quarzfrequenz.Location = new System.Drawing.Point(6, 23);
+            this.comboBox_quarzfrequenz.Name = "comboBox_quarzfrequenz";
+            this.comboBox_quarzfrequenz.Size = new System.Drawing.Size(121, 24);
+            this.comboBox_quarzfrequenz.TabIndex = 24;
+            this.comboBox_quarzfrequenz.SelectedIndexChanged += new System.EventHandler(this.comboBox_quarzfrequenz_SelectedIndexChanged);
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.label_quarzfrquenz);
+            this.groupBox4.Controls.Add(this.comboBox_quarzfrequenz);
+            this.groupBox4.Location = new System.Drawing.Point(713, 53);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(138, 80);
+            this.groupBox4.TabIndex = 25;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Quarzfrequenz";
+            // 
+            // label_quarzfrquenz
+            // 
+            this.label_quarzfrquenz.AutoSize = true;
+            this.label_quarzfrquenz.Location = new System.Drawing.Point(6, 50);
+            this.label_quarzfrquenz.Name = "label_quarzfrquenz";
+            this.label_quarzfrquenz.Size = new System.Drawing.Size(54, 17);
+            this.label_quarzfrquenz.TabIndex = 25;
+            this.label_quarzfrquenz.Text = "label13";
+            // 
+            // einstellungenToolStripMenuItem
+            // 
+            this.einstellungenToolStripMenuItem.Name = "einstellungenToolStripMenuItem";
+            this.einstellungenToolStripMenuItem.Size = new System.Drawing.Size(109, 24);
+            this.einstellungenToolStripMenuItem.Text = "Einstellungen";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(1739, 811);
+            this.Controls.Add(this.groupBox4);
+            this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox_funktionsgenerator);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.dataGridView_PortB);
@@ -1521,6 +1571,10 @@
             this.groupBox_funktionsgenerator.ResumeLayout(false);
             this.groupBox_funktionsgenerator.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1596,14 +1650,6 @@
         private System.Windows.Forms.Label label_option;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.DataGridView dataGridView_PortA;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _7;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _6;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _5;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _4;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _3;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _2;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn _0;
         private System.Windows.Forms.DataGridView dataGridView_PortB;
         private System.Windows.Forms.DataGridViewTextBoxColumn __7;
         private System.Windows.Forms.DataGridViewTextBoxColumn __6;
@@ -1648,6 +1694,18 @@
         private System.Windows.Forms.ToolStripMenuItem rB7ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rA0ToolStripMenuItem;
         private System.Windows.Forms.Timer timer_Funktionsgenerator;
+        private System.Windows.Forms.DataGridViewTextBoxColumn _4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn _3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn _2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn _1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn _0;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label label_laufzeit;
+        private System.Windows.Forms.ComboBox comboBox_quarzfrequenz;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Label label_quarzfrquenz;
+        private System.Windows.Forms.ToolStripMenuItem einstellungenToolStripMenuItem;
     }
 }
 

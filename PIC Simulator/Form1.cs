@@ -28,7 +28,6 @@ using System.IO;
  * fragen zum Steuerpult step out, step over,... (so schnell wie möglich)
  * Quarzfreguenz + laufzeitzähler
  * Wie weit bezüglich input/output PortA/PortB (schreiben zu einem input schreibt in den Latch,sobald auf Input umgeschalten wird, wird der latch in den Port geladen)
- * PortA 5-Bit Wide? (PortA<7:5> existieren, aber nicht anzeigen)
  */
 
 
@@ -61,6 +60,9 @@ namespace PIC_Simulator
         int FG_pin = Pins.nc;
         double FG_frequenz = 20;
         int FG_verhältnis = 1;//noch nicht implementiert
+
+        Laufzeitzähler laufzeitzähler = new Laufzeitzähler();
+        Quarzfrequenz quarzfrequenz = new Quarzfrequenz();
 
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
@@ -370,6 +372,13 @@ namespace PIC_Simulator
 
             //Datagrid für PortA und PortB mit Werten belegen
             update_port_datagrids();
+
+            label_laufzeit.Text = laufzeitzähler.ToString();
+            label_quarzfrquenz.Text = quarzfrequenz.ToString_time();
+            //combobox für Quarzfrequenz mit Werten belegen
+            for (int k = 0; k < Quarzfrequenz.MAX; k++)
+                comboBox_quarzfrequenz.Items.Add(quarzfrequenz.get_String_frequenz(k));
+            comboBox_quarzfrequenz.SelectedIndex = 0;   
         }
 
         
@@ -1451,8 +1460,12 @@ namespace PIC_Simulator
             }
             //nächste Zeile markieren
             markiere_zeile(codezeile[PC_ausgeben()]);
+            //GUI updaten
             update_SpecialFunctionRegister();
             update_port_datagrids();
+            //Laufzeitzähler
+            laufzeitzähler.erhöhen(quarzfrequenz.get_time());
+            label_laufzeit.Text = laufzeitzähler.ToString();
         }
 
         private void IgnoreButton_Click(object sender, EventArgs e)
@@ -1525,20 +1538,22 @@ namespace PIC_Simulator
 
         public void update_port_datagrids()
         {
-            for(int i=0;i<8;i++)
+            //TRIS 1 = i(nput); 0 = o(utput)
+            for (int i = 0; i < 5; i++)
             {
-                //TRIS 1 = i(nput); 0 = o(utput)
-
                 //datagrid portA
-                if (bit_gesetzt(Register.porta, 7 - i))
+                if (bit_gesetzt(Register.porta, 5 - i))
                     dataGridView_PortA[i, 1].Value = "1";
                 else
                     dataGridView_PortA[i, 1].Value = "0";
                 //datagrid TrisA
-                if (bit_gesetzt(Register.trisa, 7 - i))
+                if (bit_gesetzt(Register.trisa, 5 - i))
                     dataGridView_PortA[i, 0].Value = "i";
                 else
                     dataGridView_PortA[i, 0].Value = "o";
+            }
+            for (int i = 0; i < 8; i++)
+            {
                 //datagrid PortB
                 if (bit_gesetzt(Register.portb, 7 - i))
                     dataGridView_PortB[i, 1].Value = "1";
@@ -1667,29 +1682,23 @@ namespace PIC_Simulator
 
         private void dataGridView_PortA_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            int register;
             if (e.RowIndex == 0)
-                register = Register.trisa;
+                return;
+            if (bit_gesetzt(Register.porta, 5 - e.ColumnIndex))
+                bit_löschen(Register.porta, 5 - e.ColumnIndex);
             else
-                register = Register.porta;
-            if (bit_gesetzt(register, 7 - e.ColumnIndex))
-                bit_löschen(register, 7 - e.ColumnIndex);
-            else
-                bit_setzen(register, 7 - e.ColumnIndex);
+                bit_setzen(Register.porta, 5 - e.ColumnIndex);
             update_port_datagrids();
         }
 
         private void dataGridView_PortB_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            int register;
             if (e.RowIndex == 0)
-                register = Register.trisb;
+                return;
+            if (bit_gesetzt(Register.portb, 7 - e.ColumnIndex))
+                bit_löschen(Register.portb, 7 - e.ColumnIndex);
             else
-                register = Register.portb;
-            if (bit_gesetzt(register, 7 - e.ColumnIndex))
-                bit_löschen(register, 7 - e.ColumnIndex);
-            else
-                bit_setzen(register, 7 - e.ColumnIndex);
+                bit_setzen(Register.portb, 7 - e.ColumnIndex);
             update_port_datagrids();
         }
 
@@ -1766,7 +1775,7 @@ namespace PIC_Simulator
             {
                 FG_frequenz = Convert.ToDouble(textBox_FG_frequenz.Text.ToString());
             }
-            catch(Exception E)
+            catch(Exception)
             {
                 MessageBox.Show("Bitte geben sie eine Integerzahl ein");
                 textBox_FG_frequenz.Text = FG_frequenz.ToString();
@@ -1901,9 +1910,15 @@ namespace PIC_Simulator
             }
         }
 
-        
+        private void button2_Click(object sender, EventArgs e)
+        {
+            laufzeitzähler.Reset();
+        }
 
-        
-        
+        private void comboBox_quarzfrequenz_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            quarzfrequenz.set(comboBox_quarzfrequenz.SelectedIndex);
+            label_quarzfrquenz.Text = quarzfrequenz.ToString_time();
+        } 
     }
 }
