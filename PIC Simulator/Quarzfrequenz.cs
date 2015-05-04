@@ -26,32 +26,14 @@ namespace PIC_Simulator
         public const int _8MHz = 15;
         public const int _9MHz = 16;
         public const int _10MHz = 17;
-        private int[] Frequenzen = new int[3];
-        private String[] Name = new String[3];
+        private Frequenz[] Frequenzen = new Frequenz[]{
+            new Frequenz("50 kHz",50000),
+            new Frequenz("100 kHz",100000),
+            new Frequenz("250 kHz",250000),
+            //TODO weitere Werte ergänzen            
+        };
         private int frequenz=0;
-        public const int MAX = 3;
 
-
-        public Quarzfrequenz()
-        {//TODO beenden
-            Frequenzen[_50kHz] = 50000;
-            Frequenzen[_100kHz] = 100000;
-            Frequenzen[_250kHz] = 250000;
-            Frequenzen[_500kHz] = 500000;
-            Frequenzen[_1_5MHz] = 1500000;
-
-
-            Frequenzen[_4MHZ] = 4000000;
-            Frequenzen[_5MHZ] = 5000000;
-            Frequenzen[_6MHZ] = 6000000;
-
-            Name[_50kHz] = "50 kHz";
-            Name[_100kHz] = "100 kHz";
-            Name[_250kHz] = "250 kHz";
-            Name[_4MHZ] = "4,0 MHz";
-            Name[_5MHZ] = "5,0 MHz";
-            Name[_6MHZ] = "6,0 MHz";
-        }
 
         public void set(int Auswahl)
         {
@@ -60,7 +42,7 @@ namespace PIC_Simulator
 
         public int get_frequenz()
         {
-            return Frequenzen[frequenz];
+            return Frequenzen[frequenz].Wert;
         }
 
         public double get_time()
@@ -69,12 +51,12 @@ namespace PIC_Simulator
         }
         public String get_String_frequenz()
         {
-            return Name[frequenz];
+            return Frequenzen[frequenz].Name;
         }
 
         public String get_String_frequenz(int index)
         {
-            return Name[index];
+            return Frequenzen[index].Name;
         }
 
         public String ToString_time()
