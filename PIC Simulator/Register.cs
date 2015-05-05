@@ -165,7 +165,7 @@ namespace PIC_Simulator
             {
                 Speicher[adresse] = ergebnis;
                 pcl_geändert(adresse);
-                PIC.timer0_geändert(adresse);
+                PIC.timer0.geändert(adresse);
                 PIC.Speicher_grid_updaten(adresse);
                 Speicher_mapping(adresse);
             }
@@ -177,7 +177,7 @@ namespace PIC_Simulator
             Speicher[register] = (Byte)(Speicher[register] | (1 << Bit));
             Speicher_mapping(register);
             pcl_geändert(register);
-            PIC.timer0_geändert(register);
+            PIC.timer0.geändert(register);
             PIC.Speicher_grid_updaten(register);
         }
         public void bit_löschen(int register, int Bit)
@@ -185,7 +185,7 @@ namespace PIC_Simulator
             Speicher[register] = (Byte)(Speicher[register] & ~(1 << Bit));
             Speicher_mapping(register);
             pcl_geändert(register);
-            PIC.timer0_geändert(register);
+            PIC.timer0.geändert(register);
             PIC.Speicher_grid_updaten(register);
         }
         public Boolean bit_gesetzt(int register, int Bit)

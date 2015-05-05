@@ -49,10 +49,10 @@ namespace PIC_Simulator
             if (timer0_interrupt() || external_Interrupt() || rb0_interrupt() || EE_interrupt())
             {
                 //For external interrupt events, such as the RB0/INT pin or PORTB change interrupt, the interrupt latency will be three to four instruction cycles.
-                PIC.timer0_erhöhen();
-                PIC.timer0_erhöhen();
-                PIC.timer0_erhöhen();
-                PIC.timer0_erhöhen();
+                PIC.timer0.Timermode();
+                PIC.timer0.Timermode();
+                PIC.timer0.Timermode();
+                PIC.timer0.Timermode();
                 //TODO aus SLEEP-MODE aufwachen
                 //wacht nicht aus SLEEP-Mode auf wenn timer0_interrupt
                 if (register.bit_gesetzt(Register.intcon, Bits.gie))

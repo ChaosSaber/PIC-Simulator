@@ -12,14 +12,16 @@ namespace PIC_Simulator
         Form1 PIC;
         Programmcounter PC;
         Stack TOS;
+        Timer0 timer0;
 
 
-        public Befehle(Form1 pic,Register speicher,Programmcounter pc,Stack tos)
+        public Befehle(Form1 pic,Register speicher,Programmcounter pc,Stack tos,Timer0 timer0)
         {
             PIC = pic;
             register = speicher;
             PC = pc;
             TOS = tos;
+            this.timer0 = timer0;
         }
 
 
@@ -70,7 +72,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void andwf(int codezeile)
@@ -83,7 +85,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void clrf(int codezeile)
@@ -94,7 +96,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(register.Speicher[adresse]);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void clrw(int codezeile)
@@ -102,7 +104,7 @@ namespace PIC_Simulator
             register.w_register = 0;
             register.Z_Flag(register.w_register);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void comf(int codezeile)
@@ -115,7 +117,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void decf(int codezeile)
@@ -128,7 +130,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void decfsz(int codezeile)
@@ -141,7 +143,7 @@ namespace PIC_Simulator
             if (ergebnis == 0)
                 PIC.NOP = true;//nächste Anweisung überspringen
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void incf(int codezeile)
@@ -154,7 +156,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void incfsz(int codezeile)
@@ -167,7 +169,7 @@ namespace PIC_Simulator
             if (ergebnis == 0)
                 PIC.NOP = true;//nächste Anweisung wird überspringen
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void iorwf(int codezeile)
@@ -180,7 +182,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void movf(int codezeile)
@@ -192,7 +194,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(register.Speicher[adresse]);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void movwf(int codezeile)
@@ -201,13 +203,13 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             register.speichern(adresse, 1, register.w_register);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void nop(int codezeile)
         {
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
             return;//tue nichts
         }
 
@@ -226,7 +228,7 @@ namespace PIC_Simulator
                 ergebnis |= (Byte)0x01;//wenn das Carrybit am Anfang gesetzt war, setze das Bit0 auf 1
             register.speichern(adresse, d, ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void rrf(int codezeile)
@@ -244,7 +246,7 @@ namespace PIC_Simulator
                 ergebnis |= (Byte)0x80;//wenn das Carrybit am Anfang gesetzt war, setze das Bit7
             register.speichern(adresse, d, ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void subwf(int codezeile)
@@ -269,7 +271,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void swapf(int codezeile)
@@ -281,7 +283,7 @@ namespace PIC_Simulator
             ergebnis |= (Byte)((register.Speicher[adresse] & 0x0F) << 4);//Bit(3-0) maskieren und auf Position 7-4 verschieben sowie mit vorherigen Schritt verodern
             register.speichern(adresse, d, ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void xorwf(int codezeile)
@@ -294,7 +296,7 @@ namespace PIC_Simulator
             if (adresse % 0x80 != Register.status)
                 register.Z_Flag(ergebnis);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void bcf(int codezeile)
@@ -305,7 +307,7 @@ namespace PIC_Simulator
             bitnummer >>= 7;
             register.bit_löschen(adresse, bitnummer);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void bsf(int codezeile)
@@ -316,7 +318,7 @@ namespace PIC_Simulator
             bitnummer >>= 7;
             register.bit_setzen(adresse, bitnummer);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void btfsc(int codezeile)
@@ -328,7 +330,7 @@ namespace PIC_Simulator
             if (!register.bit_gesetzt(adresse, bitnummer))
                 PIC.NOP = true;//nächste Anweisung PIC.NOP
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void btfss(int codezeile)
@@ -340,7 +342,7 @@ namespace PIC_Simulator
             if (register.bit_gesetzt(adresse, bitnummer))
                 PIC.NOP = true;//nächste Anweisung PIC.NOP
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void addlw(int codezeile)
@@ -358,7 +360,7 @@ namespace PIC_Simulator
             register.w_register = (Byte)temp;
             register.Z_Flag(register.w_register);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void andlw(int codezeile)
@@ -367,7 +369,7 @@ namespace PIC_Simulator
             register.w_register &= (Byte)literal;
             register.Z_Flag(register.w_register);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void call(int codezeile)
@@ -378,8 +380,8 @@ namespace PIC_Simulator
             //nächste Zeile kann so ausgeführt werden, da PC<12:11> an dieser Stelle 0
             PC.PCH |= (Byte)(register.Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
             //2-cycle Instruction
-            PIC.Timer0_Timermode();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
+            timer0.Timermode();
         }
 
         public void clrwdt(int codezeile)
@@ -389,7 +391,7 @@ namespace PIC_Simulator
             register.Speicher[Register.status + 0x80] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
             register.Speicher[Register.status] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void _goto(int codezeile)
@@ -397,7 +399,7 @@ namespace PIC_Simulator
             int adresse = PIC.Befehl[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
             PC.set(adresse);//literal -> PC<10:0>
             PC.PCH |= (Byte)(register.Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11>
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void iorlw(int codezeile)
@@ -406,7 +408,7 @@ namespace PIC_Simulator
             register.w_register |= (Byte)literal;
             register.Z_Flag(register.w_register);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void movlw(int codezeile)
@@ -414,7 +416,7 @@ namespace PIC_Simulator
             int literal = PIC.Befehl[codezeile] & 0x00FF;
             register.w_register = (Byte)literal;
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void retfie(int codezeile)
@@ -423,7 +425,7 @@ namespace PIC_Simulator
             PC.set(TOS.Pop());//TOS -> PC
             register.bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
             register.bit_setzen(Register.intcon, Bits.gie);
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void retlw(int codezeile)
@@ -432,8 +434,8 @@ namespace PIC_Simulator
             register.w_register = (Byte)literal;
             PC.set(TOS.Pop());//TOS -> PC
             //Two-Cycle Instruction
-            PIC.Timer0_Timermode();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
+            timer0.Timermode();
         }
 
         public void _return(int codezeile)
@@ -441,8 +443,8 @@ namespace PIC_Simulator
             //return from Subroutine
             PC.set(TOS.Pop());//TOS -> PC
             //this is a two-cycle instruction
-            PIC.Timer0_Timermode();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
+            timer0.Timermode();
         }
 
         public void sleep(int codezeile)
@@ -454,7 +456,7 @@ namespace PIC_Simulator
             register.bit_setzen(Register.status, Bits.to);//TO-Bit(4) im Statusregister setzen
             register.bit_löschen(Register.status + 0x80, Bits.pd);//PD-Bit(3) im Statusregister löschen
             register.bit_löschen(Register.status, Bits.pd);//PD-Bit(3) im Statusregister löschen            
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void sublw(int codezeile)
@@ -472,7 +474,7 @@ namespace PIC_Simulator
             register.w_register = (Byte)temp;
             register.Z_Flag(register.w_register);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         public void xorlw(int codezeile)
@@ -481,7 +483,7 @@ namespace PIC_Simulator
             register.w_register ^= (Byte)literal;
             register.Z_Flag(register.w_register);
             PC.erhöhen();
-            PIC.Timer0_Timermode();
+            timer0.Timermode();
         }
 
         //Befehlsfunktionen Ende

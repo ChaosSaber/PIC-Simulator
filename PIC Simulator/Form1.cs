@@ -62,6 +62,7 @@ namespace PIC_Simulator
         internal Funktionsgenerator FG;
         internal Interrupt interrupt;
         internal Befehle befehle;
+        internal Timer0 timer0;
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
@@ -159,8 +160,7 @@ namespace PIC_Simulator
             PC.PCH = 0;
             interrupt.init();
             NOP = false;
-            Ra4_alt = (Byte)(register.Speicher[Register.porta] & 0x10);
-            prescaler = 0;
+            timer0.init();
             stepout = false;
             stepover = false;
             temp_breakpoint = -1;
@@ -261,7 +261,8 @@ namespace PIC_Simulator
             PC = new Programmcounter(this, register);
             FG = new Funktionsgenerator(this, register);
             interrupt = new Interrupt(this, register, TOS, PC);
-            befehle = new Befehle(this, register, PC, TOS);
+            timer0 = new Timer0(register, interrupt);
+            befehle = new Befehle(this, register, PC, TOS, timer0);
 
             int i = 0;
             foreach (string arg in Environment.GetCommandLineArgs())
@@ -278,9 +279,9 @@ namespace PIC_Simulator
                 } 
                 i++;
             }
-            Speicher_grid_befüllen();
 
-         
+            Speicher_grid_befüllen();
+                     
             //Array der Befehlsfunktionen initialisieren
             Befehlsfunktionen[tokens.addwf] = befehle.addwf;
             Befehlsfunktionen[tokens.andwf] = befehle.andwf;
@@ -336,19 +337,7 @@ namespace PIC_Simulator
 
         private void button1_Click(object sender, EventArgs e)//testfunktion
         {
-            //test_nicht_initialisierte_var_codezeilen();
-            //test_codezeilen_erkennen();
-            //test_laenge_short();
-            //test_parser();
-            //test_datagrid();
-            //test_speicher();
-            //test_liste();
-            //test_Simulation();
-            //test_datagrid_zeilenname();
-            //test_Spalten_headergröße();
-            //test_datagrid_fonts();
-            //test_timer();
-            //test_datagrid_zeile_markieren();
+            
         }
 
 
@@ -431,71 +420,16 @@ namespace PIC_Simulator
         //Timer0 
 
         //Variablen
-        private int Ra4_alt;//enthält den alten Wert des RA4-Bits(entweder 16 oder 0, weil 2^4=16)
-        private int prescaler;
+        
 
         //timer der den Timer0 Clock mode steuert
         //wird etwa alle 50ms ausgeführt
         private void timer0_counter_Tick(object sender, EventArgs e)
         {
-            /*
-             * wenn das T0CS-Bit im Optoinsregister gesetzt ist ist der Timer0 im Counter
-             * wenn das T0SE-Bit im Optionsregister gesetzt ist wird bei einer fallenden
-             * Flanke das Timer0-Register erhöht, ansonsten bei einer fallenden
-             */
-            if(register.bit_gesetzt(Register.option_reg,Bits.t0cs))
-            {
-                if(register.bit_gesetzt(Register.option_reg,Bits.t0se))
-                {//ra4_alt==16, weil es das 5. Bit ist;2^4=16
-                    if (Ra4_alt == 16 && (register.Speicher[Register.porta] & 0x10) == 0)
-                        timer0_erhöhen();
-                }
-                else
-                {//5.Bit deshalb 16(2^4=16)
-                    if (Ra4_alt == 0 && (register.Speicher[Register.porta] & 0x10) == 16)
-                        timer0_erhöhen();
-                }
-            }
-            Ra4_alt = (Byte)(register.Speicher[Register.porta] & 0x10);
+            timer0.ausführen();
         }
 
-        public void timer0_geändert(int adresse)
-        {
-            //wenn das Timer0 register beschrieben wird und der Prescaler dem Timer0 zugewiesen ist
-            //wird der Prescaler resettet
-            if (adresse == Register.tmr0 && !register.bit_gesetzt(Register.option_reg, Bits.psa)) 
-                prescaler = 0;
-        }
-
-        public void timer0_erhöhen()
-        {
-            //wenn das PSA-Bit im Optionsregister NICHT gesetzt ist wird der Prescaler dem Timer0 zugewiesen
-            if (register.bit_gesetzt(Register.option_reg, Bits.psa))
-            {
-                register.Speicher[Register.tmr0]++;
-                interrupt.t0if_setzen();
-            }
-            else
-            {
-                prescaler++;
-                //Prescaler PS2:PS0(Bit0-2 vom Optionsregister)
-                //prescale value von 1:2,1:4,...,1:256
-                //000==1:2;001==1:4.......
-                if (Math.Pow(2, (register.Speicher[Register.option_reg] & 0x07) + 1) >= prescaler) 
-                {
-                    register.Speicher[Register.tmr0]++;
-                    interrupt.t0if_setzen();
-                    prescaler = 0;
-                }
-            }
-        }
-        public void Timer0_Timermode()
-        {
-            //wenn Timer0 im Timer mode erhöhe den Timer0
-            if (!register.bit_gesetzt(Register.option_reg, Bits.t0cs))
-                timer0_erhöhen();
-
-        }
+        
 
 
 
