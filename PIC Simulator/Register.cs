@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace PIC_Simulator
 {
-    class Register
+    internal class Register
     {
         public const int indf = 0;
         public const int tmr0 = 1;
@@ -27,7 +27,6 @@ namespace PIC_Simulator
         public const int eecon2 = 0x89;
         public Byte[] Speicher = new Byte[256];//Registerspeicher
         public Byte w_register;
-        public Byte PCH = 0;//High-Byte des Programmcounter(PC<12:8>)
 
         Form1 PIC;
 
@@ -102,7 +101,7 @@ namespace PIC_Simulator
         {
             //Wenn dass PCL-Register das Ziel eines Schreibbefehls ist wird das PCLATH-Register ins PCH geladen
             if (adresse % 0x80 == Register.pcl)
-                PCH = Speicher[Register.pclath];
+                PIC.PC.PCH = Speicher[Register.pcl];
         }
         public void speichern(int adresse, int d, Byte ergebnis)
         {
@@ -138,26 +137,7 @@ namespace PIC_Simulator
         {
             return (Speicher[register] & (1 << Bit)) > 0;
         }
-        public void PC_setzen(int Wert)
-        {
-            Speicher[Register.pcl + 0x80] = (Byte)(Wert & 0xFF);
-            Speicher[Register.pcl] = (Byte)(Wert & 0xFF);
-            PCH = (Byte)((Wert & 0x1F00) >> 8);
-            PIC.Speicher_grid_updaten(Register.pcl);
-            PIC.Speicher_grid_updaten(Register.pcl + 0x80);
-        }
-        public int PC_ausgeben()
-        {
-            return (PCH << 8) + Speicher[Register.pcl];
-        }
-        public void PC_erhöhen()//PC um 1 erhöhen
-        {
-            if ((Speicher[Register.pcl + 0x80] += 1) == 0)
-                PCH++;
-            Speicher[Register.pcl] += 1;
-            PIC.Speicher_grid_updaten(Register.pcl);
-            PIC.Speicher_grid_updaten(Register.pcl + 0x80);
-        }
+        
         
     }
 }
