@@ -41,10 +41,10 @@ namespace PIC_Simulator
     {
         public String[] code;   //alle  Zeilen des Dokumentes
         public int[] codezeile; //Zeilenummern die verwertbaren Code enthalten; beginnen im Dokument mit 1 anstatt 0, dashalb bei Ausgabe +1 addieren
-        public int[] Befehle;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
+        public int[] Befehl;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
         
         
-        Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
+        public Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
         Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
        
         Boolean[] breakpoint;//Boolwert ob die Zeile einen Breakpoint enthält
@@ -61,11 +61,7 @@ namespace PIC_Simulator
         internal Programmcounter PC;
         internal Funktionsgenerator FG;
         internal Interrupt interrupt;
-
-        public Form1 get_form()
-        {
-            return this;
-        }
+        internal Befehle befehle;
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
@@ -95,18 +91,18 @@ namespace PIC_Simulator
         {
             int zaehler=0;
             int[] temp_int = new int[code.Length];
-            Befehle = new int[code.Length];
+            Befehl = new int[code.Length];
             for (int i = 0; i < code.Length;i++)
             {
                 char[] temp = code[i].ToCharArray();
                 if (!String.IsNullOrEmpty(code[i]) && (temp[0] <= '9' && temp[0] >= '0' || temp[0] <= 'F' && temp[0] >= 'A'))
                 { //trifft zu wenn erstes Zeichen eine Hex-Ziffer ist.
                     temp_int[zaehler] = i;
-                    Befehle[zaehler] = extrahiere_befehle(i);
+                    Befehl[zaehler] = extrahiere_befehle(i);
                     zaehler++;
                 }
             }
-            Array.Resize(ref Befehle, zaehler);
+            Array.Resize(ref Befehl, zaehler);
             Array.Resize(ref temp_int, zaehler);
             codezeile=temp_int;
             breakpoint = new Boolean[zaehler];
@@ -265,6 +261,7 @@ namespace PIC_Simulator
             PC = new Programmcounter(this, register);
             FG = new Funktionsgenerator(this, register);
             interrupt = new Interrupt(this, register, TOS, PC);
+            befehle = new Befehle(this, register, PC, TOS);
 
             int i = 0;
             foreach (string arg in Environment.GetCommandLineArgs())
@@ -285,41 +282,41 @@ namespace PIC_Simulator
 
          
             //Array der Befehlsfunktionen initialisieren
-            Befehlsfunktionen[tokens.addwf] = addwf;
-            Befehlsfunktionen[tokens.andwf] = andwf;
-            Befehlsfunktionen[tokens.clrf] = clrf;
-            Befehlsfunktionen[tokens.clrw] = clrw;
-            Befehlsfunktionen[tokens.comf] = comf;
-            Befehlsfunktionen[tokens.decf] = decf;
-            Befehlsfunktionen[tokens.decfsz] = decfsz;
-            Befehlsfunktionen[tokens.incf] = incf;
-            Befehlsfunktionen[tokens.incfsz] = incfsz;
-            Befehlsfunktionen[tokens.iorwf] = iorwf;
-            Befehlsfunktionen[tokens.movf] = movf;
-            Befehlsfunktionen[tokens.movwf] = movwf;
-            Befehlsfunktionen[tokens.nop] = nop;
-            Befehlsfunktionen[tokens.rlf] = rlf;
-            Befehlsfunktionen[tokens.rrf] = rrf;
-            Befehlsfunktionen[tokens.subwf] = subwf;
-            Befehlsfunktionen[tokens.swapf] = swapf;
-            Befehlsfunktionen[tokens.xorwf] = xorwf;
-            Befehlsfunktionen[tokens.bcf] = bcf;
-            Befehlsfunktionen[tokens.bsf] = bsf;
-            Befehlsfunktionen[tokens.btfsc] = btfsc;
-            Befehlsfunktionen[tokens.btfss] = btfss;
-            Befehlsfunktionen[tokens.addlw] = addlw;
-            Befehlsfunktionen[tokens.andlw] = andlw;
-            Befehlsfunktionen[tokens.call] = call;
-            Befehlsfunktionen[tokens.clrwdt] = clrwdt;
-            Befehlsfunktionen[tokens._goto] = _goto;
-            Befehlsfunktionen[tokens.iorlw] = iorlw;
-            Befehlsfunktionen[tokens.movlw] = movlw;
-            Befehlsfunktionen[tokens.retfie] = retfie;
-            Befehlsfunktionen[tokens.retlw] = retlw;
-            Befehlsfunktionen[tokens._return] = _return;
-            Befehlsfunktionen[tokens.sleep] = sleep;
-            Befehlsfunktionen[tokens.sublw] = sublw;
-            Befehlsfunktionen[tokens.xorlw] = xorlw;
+            Befehlsfunktionen[tokens.addwf] = befehle.addwf;
+            Befehlsfunktionen[tokens.andwf] = befehle.andwf;
+            Befehlsfunktionen[tokens.clrf] = befehle.clrf;
+            Befehlsfunktionen[tokens.clrw] = befehle.clrw;
+            Befehlsfunktionen[tokens.comf] = befehle.comf;
+            Befehlsfunktionen[tokens.decf] = befehle.decf;
+            Befehlsfunktionen[tokens.decfsz] = befehle.decfsz;
+            Befehlsfunktionen[tokens.incf] = befehle.incf;
+            Befehlsfunktionen[tokens.incfsz] = befehle.incfsz;
+            Befehlsfunktionen[tokens.iorwf] = befehle.iorwf;
+            Befehlsfunktionen[tokens.movf] = befehle.movf;
+            Befehlsfunktionen[tokens.movwf] = befehle.movwf;
+            Befehlsfunktionen[tokens.nop] = befehle.nop;
+            Befehlsfunktionen[tokens.rlf] = befehle.rlf;
+            Befehlsfunktionen[tokens.rrf] = befehle.rrf;
+            Befehlsfunktionen[tokens.subwf] = befehle.subwf;
+            Befehlsfunktionen[tokens.swapf] = befehle.swapf;
+            Befehlsfunktionen[tokens.xorwf] = befehle.xorwf;
+            Befehlsfunktionen[tokens.bcf] = befehle.bcf;
+            Befehlsfunktionen[tokens.bsf] = befehle.bsf;
+            Befehlsfunktionen[tokens.btfsc] = befehle.btfsc;
+            Befehlsfunktionen[tokens.btfss] = befehle.btfss;
+            Befehlsfunktionen[tokens.addlw] = befehle.addlw;
+            Befehlsfunktionen[tokens.andlw] = befehle.andlw;
+            Befehlsfunktionen[tokens.call] = befehle.call;
+            Befehlsfunktionen[tokens.clrwdt] = befehle.clrwdt;
+            Befehlsfunktionen[tokens._goto] = befehle._goto;
+            Befehlsfunktionen[tokens.iorlw] = befehle.iorlw;
+            Befehlsfunktionen[tokens.movlw] = befehle.movlw;
+            Befehlsfunktionen[tokens.retfie] = befehle.retfie;
+            Befehlsfunktionen[tokens.retlw] = befehle.retlw;
+            Befehlsfunktionen[tokens._return] = befehle._return;
+            Befehlsfunktionen[tokens.sleep] = befehle.sleep;
+            Befehlsfunktionen[tokens.sublw] = befehle.sublw;
+            Befehlsfunktionen[tokens.xorlw] = befehle.xorlw;
 
             //label für SFR mit Werten belegen
             update_SpecialFunctionRegister();
@@ -367,22 +364,22 @@ namespace PIC_Simulator
                 return tokens.nop;
             }
             //Befehle mit bestimmter Codeabfolge
-            if (Befehle[codezeile] == 0x0064) return tokens.clrwdt;
-            if (Befehle[codezeile] == 0x0009) return tokens.retfie;
-            if (Befehle[codezeile] == 0x0008) return tokens._return;
-            if (Befehle[codezeile] == 0x0063) return tokens.sleep;
+            if (Befehl[codezeile] == 0x0064) return tokens.clrwdt;
+            if (Befehl[codezeile] == 0x0009) return tokens.retfie;
+            if (Befehl[codezeile] == 0x0008) return tokens._return;
+            if (Befehl[codezeile] == 0x0063) return tokens.sleep;
 
             //NOP
-            maskiert = Befehle[codezeile] & 0xFF9F;
+            maskiert = Befehl[codezeile] & 0xFF9F;
             if (maskiert == 0) return tokens.nop;
 
             //Befehle mit 3-stelliger Codeabfolge
-            maskiert = Befehle[codezeile] & 0xF800;
+            maskiert = Befehl[codezeile] & 0xF800;
             if (maskiert == 0x2000) return tokens.call;
             if (maskiert == 0x2800) return tokens._goto;
 
             //Befehle mit 4-stelliger Codeabfolge
-            maskiert = Befehle[codezeile] & 0xFC00;
+            maskiert = Befehl[codezeile] & 0xFC00;
             if (maskiert == 0x1000) return tokens.bcf;
             if (maskiert == 0x1400) return tokens.bsf;
             if (maskiert == 0x1800) return tokens.btfsc;
@@ -391,12 +388,12 @@ namespace PIC_Simulator
             if (maskiert == 0x3400) return tokens.retlw;
 
             //Befehle mit 5-stelliger Codeabfolge
-            maskiert = Befehle[codezeile] & 0xFE00;
+            maskiert = Befehl[codezeile] & 0xFE00;
             if (maskiert == 0x3E00) return tokens.addlw;
             if (maskiert == 0x3C00) return tokens.sublw;
 
             //Befehle mit 6-stelliger codeabfolge
-            maskiert = Befehle[codezeile] & 0xFF00;
+            maskiert = Befehl[codezeile] & 0xFF00;
             if (maskiert == 0x0700) return tokens.addwf;
             if (maskiert == 0x0500) return tokens.andwf;
             if (maskiert == 0x0900) return tokens.comf;
@@ -416,7 +413,7 @@ namespace PIC_Simulator
             if (maskiert == 0x3A00) return tokens.xorlw;
 
             //Befehle mit 7-stelliger Codeabfolge
-            maskiert = Befehle[codezeile] & 0xFF80;
+            maskiert = Befehl[codezeile] & 0xFF80;
             if (maskiert == 0x0180) return tokens.clrf;
             if (maskiert == 0x0100) return tokens.clrw;
             if (maskiert == 0x0080) return tokens.movwf;
@@ -425,470 +422,7 @@ namespace PIC_Simulator
             return -1;
         }
         
-        /*************************************************************************************************************/
-        //Hilfsfunktionen für Befehlsfunktionen
-        public int adressänderungen(ref int adresse)
-        {
-            //Wenn das RP0-Bit des Statusregisters gesetzt ist wird auf Bank 1 umgeschaltet (alle Register um 80H erhöht)
-            if (Bank1())
-                adresse += 0x80;
-            //wenn die Zieladresse das INDF-Register(0 oder 80H bei Bank 1) ist, dann wird anstelle des Registers 0/80H
-            //an die Registerstelle gespeichert, die das FSR-Register(4 oder 84H bei Bank 1) enthält
-            if (adresse % 0x80 == 0)
-                adresse = register.Speicher[Register.fsr];
-            return adresse;
-        }
-        public Boolean Bank1()
-        {
-            return register.bit_gesetzt(Register.status, Bits.rp0);
-        }
         
-        /*************************************************************************************************************/
-        //Befehlsfunktionen
-        //Status = Speicheradresse 3
-            //Statusbits:
-            //IRP=7;RP1=6;RP0=5;TO(quer)=4;PD(quer)=3;Z=2;DC=1;C=0
-
-
-        public void addwf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            int temp = register.Speicher[adresse] + register.w_register;
-            if ((adresse % 0x80) != Register.status) 
-            {
-                if (temp > 255)//wenn das Ergebnis>255(1Byte) dann setze das Carrybit, ansonsten lösche es
-                    register.Carry_setzen();
-                else
-                    register.Carry_löschen();
-                if ((register.Speicher[adresse] & 0xF + register.w_register & 0xF) > 15)
-                    register.Digitcarry_setzen();
-                else
-                    register.Digitcarry_löschen();
-            }
-            
-            Byte ergebnis = (Byte)temp;
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status) 
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void andwf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(register.Speicher[adresse] & register.w_register);
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status) 
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void clrf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            register.speichern(adresse, 1, 0);
-            if (adresse % 0x80 != Register.status) 
-                register.Z_Flag(register.Speicher[adresse]);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void clrw(int codezeile)
-        {
-            register.w_register = 0;
-            register.Z_Flag(register.w_register);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void comf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)~register.Speicher[adresse];
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status) 
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void decf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(register.Speicher[adresse] - 1);
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status)
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void decfsz(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(register.Speicher[adresse]-1);
-            register.speichern(adresse, d, ergebnis);
-            if (ergebnis == 0)
-                NOP = true;//nächste Anweisung überspringen
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void incf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(register.Speicher[adresse] + 1);
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status)
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void incfsz(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(register.Speicher[adresse] + 1);
-            register.speichern(adresse, d, ergebnis);
-            if (ergebnis == 0)
-                NOP = true;//nächste Anweisung wird überspringen
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void iorwf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(register.Speicher[adresse] | register.w_register);
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status)
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void movf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            register.speichern(adresse, d, register.Speicher[adresse]);
-            if (adresse % 0x80 != Register.status) 
-                register.Z_Flag(register.Speicher[adresse]);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void movwf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            register.speichern(adresse, 1, register.w_register);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void nop(int codezeile)
-        {
-            PC.erhöhen();
-            Timer0_Timermode();
-            return;//tue nichts
-        }
-       
-        public void rlf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Boolean carry = register.bit_gesetzt(Register.status, Bits.C);//Carrybit zwischenspeichern
-            if (register.bit_gesetzt(adresse, 7))//wenn Bit7=1 dann setze Carrybit, ansonsten nicht
-                register.Carry_setzen();
-            else
-                register.Carry_löschen();
-            Byte ergebnis = (Byte)(register.Speicher[adresse] << 1);
-            if (carry)
-                ergebnis |= (Byte)0x01;//wenn das Carrybit am Anfang gesetzt war, setze das Bit0 auf 1
-            register.speichern(adresse, d, ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-        
-        public void rrf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Boolean carry = register.bit_gesetzt(Register.status, Bits.C);//Carrybit zwischenspeichern
-            if (register.bit_gesetzt(adresse, 0))//wenn Bit0=1 dann setze Carrybit, ansonsten nicht
-                register.Carry_setzen();
-            else
-                register.Carry_löschen();
-            Byte ergebnis = (Byte)(register.Speicher[adresse] >> 1);
-            if (carry)
-                ergebnis |= (Byte)0x80;//wenn das Carrybit am Anfang gesetzt war, setze das Bit7
-            register.speichern(adresse, d, ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void subwf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            int temp = register.Speicher[adresse] - register.w_register;
-            if (adresse % 0x80 != Register.status)
-            {
-                if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
-                    register.Carry_löschen();
-                else
-                    register.Carry_setzen();
-                if ((register.Speicher[adresse] & 0xF - register.w_register & 0xF) <= 0)
-                    register.Digitcarry_setzen();
-                else
-                    register.Digitcarry_löschen();
-            }
-            Byte ergebnis = (Byte)temp;
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status)
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void swapf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)((register.Speicher[adresse] & 0xF0)>>4);//Bit(7-4) maskieren und auf Position 3-0 verschieben
-            ergebnis |= (Byte)((register.Speicher[adresse] & 0x0F) << 4);//Bit(3-0) maskieren und auf Position 7-4 verschieben sowie mit vorherigen Schritt verodern
-            register.speichern(adresse, d, ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void xorwf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(register.Speicher[adresse] ^ register.w_register);
-            register.speichern(adresse, d, ergebnis);
-            if (adresse % 0x80 != Register.status)
-                register.Z_Flag(ergebnis);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void bcf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int bitnummer = Befehle[codezeile] & 0x0380;
-            bitnummer >>= 7;
-            register.bit_löschen(adresse, bitnummer);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void bsf(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int bitnummer = Befehle[codezeile] & 0x0380;
-            bitnummer >>= 7;
-            register.bit_setzen(adresse, bitnummer);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void btfsc(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int bitnummer = Befehle[codezeile] & 0x0380;
-            bitnummer >>= 7;
-            if (!register.bit_gesetzt(adresse, bitnummer))
-                NOP = true;//nächste Anweisung NOP
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void btfss(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x007F;
-            adressänderungen(ref adresse);
-            int bitnummer = Befehle[codezeile] & 0x0380;
-            bitnummer >>= 7;
-            if (register.bit_gesetzt(adresse, bitnummer))
-                NOP = true;//nächste Anweisung NOP
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void addlw(int codezeile)
-        {
-            int literal = Befehle[codezeile] & 0x00FF;
-            int temp = literal + register.w_register;
-            if (temp > 255)//wenn das Ergebnis>255(1 Byte) dann setze das Carrybit, ansonsten lösche es
-                register.Carry_setzen();
-            else
-                register.Carry_löschen();
-            if ((literal & 0xF + register.w_register & 0xF) > 15)
-                register.Digitcarry_setzen();
-            else
-                register.Digitcarry_löschen();
-            register.w_register = (Byte)temp;
-            register.Z_Flag(register.w_register);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void andlw(int codezeile)
-        {
-            int literal = Befehle[codezeile] & 0x00FF;
-            register.w_register &= (Byte)literal;
-            register.Z_Flag(register.w_register);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-        
-        public void call(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
-            TOS.Add(PC.get() + 1);//PC + 1 -> TOS
-            PC.set(adresse);//literal -> PC<10:0>
-            //nächste Zeile kann so ausgeführt werden, da PC<12:11> an dieser Stelle 0
-            PC.PCH |= (Byte)(register.Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
-            //2-cycle Instruction
-            Timer0_Timermode();
-            Timer0_Timermode();
-        }
-        
-        public void clrwdt(int codezeile)
-        {
-            //WDT=0;
-            //WDT prescaler=0;
-            register.Speicher[Register.status + 0x80] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
-            register.Speicher[Register.status] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-        
-        public void _goto(int codezeile)
-        {
-            int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
-            PC.set(adresse);//literal -> PC<10:0>
-            PC.PCH |= (Byte)(register.Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11>
-            Timer0_Timermode();
-        }
-
-        public void iorlw(int codezeile)
-        {
-            int literal = Befehle[codezeile] & 0x00FF;
-            register.w_register |= (Byte)literal;
-            register.Z_Flag(register.w_register);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void movlw(int codezeile)
-        {
-            int literal = Befehle[codezeile] & 0x00FF;
-            register.w_register = (Byte)literal;
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-        
-        public void retfie(int codezeile)
-        {
-            //return from interrupt;
-            PC.set(TOS.Pop());//TOS -> PC
-            register.bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
-            register.bit_setzen(Register.intcon, Bits.gie);
-            Timer0_Timermode();
-        }
-
-        public void retlw(int codezeile)
-        {
-            int literal = Befehle[codezeile] & 0x00FF;
-            register.w_register = (Byte)literal;
-            PC.set(TOS.Pop());//TOS -> PC
-            //Two-Cycle Instruction
-            Timer0_Timermode();
-            Timer0_Timermode();
-        }
-
-        public void _return(int codezeile)
-        {
-            //return from Subroutine
-            PC.set(TOS.Pop());//TOS -> PC
-            //this is a two-cycle instruction
-            Timer0_Timermode();
-            Timer0_Timermode();
-        }
-       
-        public void sleep(int codezeile)
-        {
-            //The processor is put into SLEEP-mode with the oscillator stopped.
-            //0 -> WDT
-            //0 -> WDT prescaler
-            register.bit_setzen(Register.status + 0x80, Bits.to);//TO-Bit(4) im Statusregister setzen
-            register.bit_setzen(Register.status, Bits.to);//TO-Bit(4) im Statusregister setzen
-            register.bit_löschen(Register.status + 0x80, Bits.pd);//PD-Bit(3) im Statusregister löschen
-            register.bit_löschen(Register.status, Bits.pd);//PD-Bit(3) im Statusregister löschen            
-            Timer0_Timermode();
-        }
-
-        public void sublw(int codezeile)
-        {
-            int literal = Befehle[codezeile] & 0x00FF;
-            int temp = literal - register.w_register;
-            if (temp <= 0)//wenn das Ergebnis<=0 dann lösche das Carrybit, ansonsten setze es
-                register.Carry_löschen();
-            else
-                register.Carry_setzen();
-            if ((literal & 0xF - register.w_register & 0xF) <=0)
-                register.Digitcarry_setzen();
-            else
-                register.Digitcarry_löschen();
-            register.w_register = (Byte)temp;
-            register.Z_Flag(register.w_register);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        public void xorlw(int codezeile)
-        {
-            int literal = Befehle[codezeile] & 0x00FF;
-            register.w_register ^= (Byte)literal;
-            register.Z_Flag(register.w_register);
-            PC.erhöhen();
-            Timer0_Timermode();
-        }
-
-        //Befehlsfunktionen Ende
-        /**********************************************************************************************************/
 
 
 
