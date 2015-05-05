@@ -47,9 +47,6 @@ namespace PIC_Simulator
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
         Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
        
-        Byte RB_alt = 0; //alter Stand(vom letzten Programmzyklus) des Port B, wird für Interrupt benötigt;
-        Byte Timer0_alt = 0; //alter Stand(vom letzten Programmzyklus) des Timer0, wird für Interrupt benötigt
-        Byte RB0_alt = 0; //alter Stand(vom letzten Programmzyklus) des RB0-Bit, wird für Interrupt benötigt
         Boolean[] breakpoint;//Boolwert ob die Zeile einen Breakpoint enthält
         Boolean reset = false;//wenn dieser Wert true ist wird das laufende Programm abgebrochen
         Boolean stepout = false;//wenn dieser wert true ist wird das laufende Programm abgebrochen sobald es auf ein return trifft;
@@ -63,6 +60,7 @@ namespace PIC_Simulator
         internal Register register;
         internal Programmcounter PC;
         internal Funktionsgenerator FG;
+        internal Interrupt interrupt;
 
         public Form1 get_form()
         {
@@ -163,9 +161,7 @@ namespace PIC_Simulator
 
             //Variableninitiation
             PC.PCH = 0;
-            Timer0_alt = 0;
-            RB_alt = (Byte)(register.Speicher[Register.portb] & 0xF0);
-            RB0_alt = (Byte)(register.Speicher[Register.portb] & 0x01);
+            interrupt.init();
             NOP = false;
             Ra4_alt = (Byte)(register.Speicher[Register.porta] & 0x10);
             prescaler = 0;
@@ -210,7 +206,11 @@ namespace PIC_Simulator
         //Resets Ende
         /***********************************************************************************************/
 
-
+        //enthält sämtliche Interruptfunktionen und wird von einem Timer alle 50ms ausgeführt
+        private void interrupttimer_Tick(object sender, EventArgs e)
+        {
+            interrupt.Flags_setzen();
+        }
 
         //zeigt die Register in einem DataGridView an
         public void Speicher_grid_befüllen()
@@ -264,6 +264,7 @@ namespace PIC_Simulator
             register = new Register(this);
             PC = new Programmcounter(this, register);
             FG = new Funktionsgenerator(this, register);
+            interrupt = new Interrupt(this, register, TOS, PC);
 
             int i = 0;
             foreach (string arg in Environment.GetCommandLineArgs())
@@ -891,92 +892,6 @@ namespace PIC_Simulator
 
 
 
-        /**********************************************************************************************************/
-        //Interrupt
-        //manual Seite 31
-        //wenn ein Interrupt passiert wird an die Stelle 4 gesprungen
-        //For external interrupt events, such as the RB0/INT pin or PORTB change interrupt, the interrupt latency will be three to four instruction cycles.
-        //The interrupt flag bit(s) must be cleared in software before re-enabling interrupts to avoid infinite interrupt requests.
-        
-        //enthält sämtliche Interruptfunktionen und wird von einem Timer alle 50ms ausgeführt
-        private void interrupttimer_Tick(object sender, EventArgs e)
-        {
-            intf_setzen();
-            rbif_setzen();
-            
-        }
-        //prüft ob ein Interrupt ausgeführt werden muss
-        //wenn ja wird der PC auf Stelle 4 gesetzt 
-        public void Interrupt()
-        {
-            if (timer0_interrupt() || external_Interrupt() || rb0_interrupt() || EE_interrupt())
-            {
-                //TODO aus SLEEP-MODE aufwachen
-                //wacht nicht aus SLEEP-Mode auf wenn timer0_interrupt
-                if (register.bit_gesetzt(Register.intcon, Bits.gie))
-                {
-                    TOS.Add(PC.get());
-                    PC.set(4);
-                    register.bit_löschen(Register.intcon, Bits.gie);
-                }
-            }
-        }
-        public void t0if_setzen()
-        {//wenn Timer0 überläuft
-            if (Timer0_alt == 255 && register.Speicher[Register.tmr0] == 0)
-                register.bit_setzen(Register.intcon, Bits.t0if);
-            Timer0_alt = register.Speicher[Register.tmr0];
-        }
-        public void intf_setzen()
-        {//external interruptflag
-            //The RB0/INT external interrupt occurred (must be cleared in software)
-            //wenn das intedg im Optionsregister gesetzt ist bei einer steigenden flanke, ansonsten bei einer fallenden
-            if (register.bit_gesetzt(Register.option_reg, Bits.intedg)) 
-            {
-                if (RB0_alt == 0 && (register.Speicher[Register.portb] & 0x01) == 1) 
-                    register.bit_setzen(Register.intcon, Bits.intf);
-            }
-            else
-                if (RB0_alt == 1 && (register.Speicher[Register.portb] & 0x01) == 0)
-                    register.bit_setzen(Register.intcon, Bits.intf);
-            RB0_alt = (Byte)(register.Speicher[Register.portb] & 0x01);
-        }
-        public void rbif_setzen()
-        {//RB Port Change
-            //At least one of the RB7:RB4 pins changed state (must be cleared in software)
-            if (RB_alt != (register.Speicher[Register.portb] & 0xF0))
-                register.bit_setzen(Register.intcon, Bits.rbif);
-            RB_alt = (Byte)(register.Speicher[Register.portb] & 0xF0);
-        }
-        public Boolean timer0_interrupt()
-        {
-            if (register.bit_gesetzt(Register.intcon, Bits.t0ie) && register.bit_gesetzt(Register.intcon, Bits.t0if)) 
-                return true;
-            return false;
-        }
-        public Boolean external_Interrupt()
-        {
-            if (register.bit_gesetzt(Register.intcon, Bits.inte) && register.bit_gesetzt(Register.intcon, Bits.intf))
-                return true;
-            return false;
-        }
-        public Boolean rb0_interrupt()
-        {
-            if (register.bit_gesetzt(Register.intcon, Bits.rbie) && register.bit_gesetzt(Register.intcon, Bits.rbif))
-                return true;
-            return false;
-        }
-        public Boolean EE_interrupt()
-        {//EE Write Complete Interrupt
-            if (register.bit_gesetzt(Register.intcon, Bits.eeie) && register.bit_gesetzt(Register.eecon1, Bits.eeif)) 
-                return true;
-            return false;
-        }
-
-        //Interrupt Ende
-        /**********************************************************************************************/
-
-
 
         /*************************************************************************************************************/
         //Timer0 
@@ -1024,7 +939,7 @@ namespace PIC_Simulator
             if (register.bit_gesetzt(Register.option_reg, Bits.psa))
             {
                 register.Speicher[Register.tmr0]++;
-                t0if_setzen();
+                interrupt.t0if_setzen();
             }
             else
             {
@@ -1035,7 +950,7 @@ namespace PIC_Simulator
                 if (Math.Pow(2, (register.Speicher[Register.option_reg] & 0x07) + 1) >= prescaler) 
                 {
                     register.Speicher[Register.tmr0]++;
-                    t0if_setzen();
+                    interrupt.t0if_setzen();
                     prescaler = 0;
                 }
             }
@@ -1146,7 +1061,7 @@ namespace PIC_Simulator
 
         public void Programmablauf()
         {
-            Interrupt();
+            interrupt.ausführen();
             int zeilennummer = PC.get();
             int befehl=parser(zeilennummer);
             Befehlsfunktionen[befehl](zeilennummer);
