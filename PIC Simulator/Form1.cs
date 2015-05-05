@@ -56,15 +56,13 @@ namespace PIC_Simulator
         Boolean stepover = false;//bestimmt ob sich das Programm im stepovermodus befindet
         int temp_breakpoint = -1;//temporärer Breakpoint für stepover
         String contextmenustrip_aufrufer = "";
-        //Funktionsgenerator Variablen
-        int FG_pin = Pins.nc;
-        double FG_frequenz = 20;
-        int FG_verhältnis = 1;//noch nicht implementiert
+        
 
         Laufzeitzähler laufzeitzähler = new Laufzeitzähler();
         Quarzfrequenz quarzfrequenz = new Quarzfrequenz();
         internal Register register;
         internal Programmcounter PC;
+        internal Funktionsgenerator FG;
 
         public Form1 get_form()
         {
@@ -78,6 +76,7 @@ namespace PIC_Simulator
         public Form1()
         {
             InitializeComponent();
+            initialize_my_Component();
         }
 
         //Hex-Code des Befehls in ein Int umwandeln
@@ -138,7 +137,7 @@ namespace PIC_Simulator
             Power_On_Reset();
             
             Code_anzeigen();
-            Speicher_grid_anzeigen();
+            Speicher_grid_befüllen();
             markiere_zeile(codezeile[0]);
             update_port_datagrids();
             update_SpecialFunctionRegister();
@@ -214,11 +213,8 @@ namespace PIC_Simulator
 
 
         //zeigt die Register in einem DataGridView an
-        public void Speicher_grid_anzeigen()
+        public void Speicher_grid_befüllen()
         {
-            dataGridView_Speicher.RowCount = 32;//32 Zeilen à 8 Register/Byte = 256/FFH Register
-            for (int i = 0; i < 32; i++)
-                dataGridView_Speicher.Rows[i].HeaderCell.Value = (i * 8).ToString("X2");//sollte eigentlich funktionieren, tut es aber nicht.
             for (int i = 0; i < 256; i++)
                 dataGridView_Speicher[i % 8, i / 8].Value = register.Speicher[i].ToString("X2");
         }
@@ -226,23 +222,13 @@ namespace PIC_Simulator
         //aktuallisiert ein Speicherregister im DataGridView
         public void Speicher_grid_updaten(int adresse)
         {
-            try
-            {
-                dataGridView_Speicher[adresse % 8, adresse / 8].Value = register.Speicher[adresse].ToString("X2");
-            }
-            catch(Exception e)
-            {
-                programmtimer.Enabled = false;
-                MessageBox.Show(adresse.ToString()+"\n"+e.Message);
-            }
-            
+            adresse %= 256;
+            dataGridView_Speicher[adresse % 8, adresse / 8].Value = register.Speicher[adresse].ToString("X2");
         }
 
         public void Code_anzeigen()
         {
             dataGridView_code.RowCount = code.Length;
-            dataGridView_code.Columns[1].DefaultCellStyle.Font = new Font("Courier New", 12, GraphicsUnit.Pixel);//Spalte mit dem Code
-            dataGridView_code.Columns[0].DefaultCellStyle.Font = new Font("Arial", 20, GraphicsUnit.Pixel);//Spalte mit dem Breakpoint
             for(int i=0;i<code.Length;i++)
             {
                 try
@@ -258,7 +244,6 @@ namespace PIC_Simulator
 
         private void ladenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openFileDialog1.Filter = "lst files (*.lst)|*.lst";
             DialogResult result = openFileDialog1.ShowDialog();
             if (result == DialogResult.OK) 
             {
@@ -278,6 +263,7 @@ namespace PIC_Simulator
         {
             register = new Register(this);
             PC = new Programmcounter(this, register);
+            FG = new Funktionsgenerator(this, register);
 
             int i = 0;
             foreach (string arg in Environment.GetCommandLineArgs())
@@ -294,7 +280,7 @@ namespace PIC_Simulator
                 } 
                 i++;
             }
-            Speicher_grid_anzeigen();
+            Speicher_grid_befüllen();
 
          
             //Array der Befehlsfunktionen initialisieren
@@ -1245,7 +1231,7 @@ namespace PIC_Simulator
         public void Zeile_anzeigen(int zeilennummer)
         {
             //macht die aktuelle Zeile zur ersten angezeigten Zeile, sofern sie außerhalb des angezeigten Bereichs ist
-            if (zeilennummer < dataGridView_code.FirstDisplayedCell.RowIndex || zeilennummer > dataGridView_code.FirstDisplayedCell.RowIndex + 15)
+            if (zeilennummer < dataGridView_code.FirstDisplayedCell.RowIndex || zeilennummer > dataGridView_code.FirstDisplayedCell.RowIndex + 14)
                 dataGridView_code.FirstDisplayedCell = dataGridView_code[0, zeilennummer];
         }
 
@@ -1527,7 +1513,7 @@ namespace PIC_Simulator
 
         private void dataGridView_PortA_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex == 0)
+            if (e.RowIndex == 0)//Zeile für TRIS-Register
                 return;
             if (register.bit_gesetzt(Register.porta, 5 - e.ColumnIndex))
                 register.bit_löschen(Register.porta, 5 - e.ColumnIndex);
@@ -1538,7 +1524,7 @@ namespace PIC_Simulator
 
         private void dataGridView_PortB_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex == 0)
+            if (e.RowIndex == 0)//Zeile für TRIS-Register
                 return;
             if (register.bit_gesetzt(Register.portb, 7 - e.ColumnIndex))
                 register.bit_löschen(Register.portb, 7 - e.ColumnIndex);
@@ -1616,30 +1602,31 @@ namespace PIC_Simulator
         private void textBox_FG_frequenz_TextChanged(object sender, EventArgs e)
         {
             //TODO nicht das optimalste, aber funktioniert erstmal
+            double frequenz=Convert.ToDouble(textBox_FG_frequenz.Text);
             try
             {
-                FG_frequenz = Convert.ToDouble(textBox_FG_frequenz.Text.ToString());
+                frequenz = Convert.ToDouble(textBox_FG_frequenz.Text);
             }
             catch(Exception)
             {
                 MessageBox.Show("Bitte geben sie eine Integerzahl ein");
-                textBox_FG_frequenz.Text = FG_frequenz.ToString();
+                textBox_FG_frequenz.Text = frequenz.ToString();
             }
-            if (FG_frequenz <= 0)
+            if (frequenz <= 0)
             {
                 MessageBox.Show("Bitte geben sie eine ganze Zahl größer 0 an");
-                FG_frequenz = Math.Abs(FG_frequenz);
-                textBox_FG_frequenz.Text = FG_frequenz.ToString();
+                frequenz = Math.Abs(frequenz);
+                textBox_FG_frequenz.Text = frequenz.ToString();
             }
-            else if (FG_frequenz > 1000) 
+            else if (frequenz > 1000) 
             {
                 MessageBox.Show("Bitte geben sie eine ganze Zahl größer 0 an und kleinergleich 1000");
-                FG_frequenz = 1000;
+                frequenz = 1000;
                 textBox_FG_frequenz.Text = "1000";
             }
             else
             {
-                timer_Funktionsgenerator.Interval = (int)(1000 / FG_frequenz);
+                timer_Funktionsgenerator.Interval = (int)(1000 / frequenz);
             }
         }
 
@@ -1737,22 +1724,14 @@ namespace PIC_Simulator
         {
             if(contextmenustrip_aufrufer=="textBox_FG_pin")
             {
-                FG_pin = pin;
+                FG.set_Pin(pin);
                 textBox_FG_pin.Text = Pins.ToString(pin);
             }
         }
 
         private void timer_Funktionsgenerator_Tick(object sender, EventArgs e)
         {
-            if(FG_pin>2)
-            {
-                if (register.bit_gesetzt(FG_pin / 10, FG_pin % 10))
-                    register.bit_löschen(FG_pin / 10, FG_pin % 10);
-                else
-                    register.bit_setzen(FG_pin / 10, FG_pin % 10);
-                update_port_datagrids();
-                Speicher_grid_updaten(FG_pin / 10);
-            }
+            FG.change_pin();
         }
 
         private void button2_Click(object sender, EventArgs e)
