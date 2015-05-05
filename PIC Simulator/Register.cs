@@ -9,6 +9,7 @@ namespace PIC_Simulator
 {
     internal class Register
     {
+        //Adressen der SFR als Konstanten
         public const int indf = 0;
         public const int tmr0 = 1;
         public const int pcl = 2;
@@ -25,6 +26,8 @@ namespace PIC_Simulator
         public const int trisb = 0x86;
         public const int eecon1 = 0x88;
         public const int eecon2 = 0x89;
+
+
         public Byte[] Speicher = new Byte[256];//Registerspeicher
         public Byte w_register;
 
@@ -35,6 +38,58 @@ namespace PIC_Simulator
             PIC = pic;
         }
 
+
+        public void Power_on_Reset()
+        {
+            //Manual Seite 27
+            Speicher[0] = 0;
+            Speicher[2] = 0;
+            Speicher[3] = 0x18;
+            Speicher[5] = 0;//PortA
+            Speicher[7] = 0;
+            Speicher[0x0A] = 0;
+            Speicher[0x0B] = 0;
+            Speicher[0x80] = 0;
+            Speicher[0x81] = 0xFF;
+            Speicher[0x82] = 0;
+            Speicher[0x83] = 0x18;
+            Speicher[0x85] = 0x1F;
+            Speicher[0x86] = 0xFF;
+            Speicher[0x87] = 0;
+            Speicher[0x88] = 0;
+            Speicher[0x89] = 0;
+            Speicher[0x8A] = 0;
+            Speicher[0x8B] = 0;
+        }
+
+        public void MCLR()
+        {
+            //manual Seite 27
+            //during: normal Operation, sleep
+            //WDT-Reset during normal operation
+            Speicher[0x03] &= 0x1F;
+            //Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
+            Speicher[0x0A] = 0;
+            Speicher[0x0B] &= 0x01;
+            Speicher[0x81] = 0xFF;
+            Speicher[0x83] &= 0x1F;//Status
+            //TODO Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
+            Speicher[0x85] = 0x1F;
+            Speicher[0x86] = 0xFF;
+            Speicher[0x88] &= 0xE8;//EECON1
+            //TODO EECON1<3>:  value depends on condition
+            Speicher[0x8A] = 0;
+            Speicher[0x8B] &= 0x01;
+        }
+
+        public void Wakeup_from_Sleep()
+        {
+            //manual seite 27
+            //Through interrupt
+            //through WDT Time-out
+            //TODO STatus(3 und 0x83) depends on condition siehe Tabelle 6-3
+            Speicher[0x88] &= 0xEF;
+        }
 
         public void Z_Flag(Byte ergebnis)
         {

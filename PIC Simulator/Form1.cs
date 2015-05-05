@@ -156,27 +156,11 @@ namespace PIC_Simulator
         //Reset
 
         //TODO welcher Reset ist der Button-Reset?
-        //Manual Seite 27
+        
         public void Power_On_Reset()
         {
-            register.Speicher[0] = 0;
-            register.Speicher[2] = 0;
-            register.Speicher[3] = 0x18;
-            register.Speicher[5] = 0;//PortA
-            register.Speicher[7] = 0;
-            register.Speicher[0x0A] = 0;
-            register.Speicher[0x0B] = 0;
-            register.Speicher[0x80] = 0;
-            register.Speicher[0x81] = 0xFF;
-            register.Speicher[0x82] = 0;
-            register.Speicher[0x83] = 0x18;
-            register.Speicher[0x85] = 0x1F;
-            register.Speicher[0x86] = 0xFF;
-            register.Speicher[0x87] = 0;
-            register.Speicher[0x88] = 0;
-            register.Speicher[0x89] = 0;
-            register.Speicher[0x8A] = 0;
-            register.Speicher[0x8B] = 0;
+            //Manual Seite 27
+            register.Power_on_Reset();
 
             //Variableninitiation
             PC.PCH = 0;
@@ -195,6 +179,7 @@ namespace PIC_Simulator
                 breakpoint[i] = false;
 
             update_SpecialFunctionRegister();
+            update_port_datagrids();
         }
 
         public void MCLR()
@@ -203,22 +188,11 @@ namespace PIC_Simulator
             //during: normal Operation, sleep
             //WDT-Reset during normal operation
             PC.set(0);
-            register.Speicher[0x03] &= 0x1F;
-            //Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
-            register.Speicher[0x0A] = 0;
-            register.Speicher[0x0B] &= 0x01;
-            register.Speicher[0x81] = 0xFF;
-            register.Speicher[0x83] &= 0x1F;//Status
-            //TODO Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
-            register.Speicher[0x85] = 0x1F;
-            register.Speicher[0x86] = 0xFF;
-            register.Speicher[0x88] &= 0xE8;//EECON1
-            //TODO EECON1<3>:  value depends on condition
-            register.Speicher[0x8A] = 0;
-            register.Speicher[0x8B] &= 0x01;
+            register.MCLR();
             //TODO wie beeinflusst das die Variablen?
 
             update_SpecialFunctionRegister();
+            update_port_datagrids();
         }
 
         public void Wakeup_from_sleep()
@@ -226,11 +200,12 @@ namespace PIC_Simulator
             //manual seite 27
             //Through interrupt
             //through WDT Time-out
-
             PC.erhöhen();
-            //TODO STatus(3 und 0x83) depends on condition siehe Tabelle 6-3
-            register.Speicher[0x88] &= 0xEF;
+            register.Wakeup_from_Sleep();
             //TODO wie beeinflusst das die Variablen
+
+            update_port_datagrids();
+            update_SpecialFunctionRegister();
         }
 
         //Resets Ende
