@@ -30,10 +30,30 @@ namespace PIC_Simulator
             new Frequenz("50 kHz",50000),
             new Frequenz("100 kHz",100000),
             new Frequenz("250 kHz",250000),
-            //TODO weitere Werte ergänzen            
+            new Frequenz("500 kHz",500000),
+            new Frequenz("1 MHz",1000000),
+            new Frequenz("1,5 MHz", 1500000),
+            new Frequenz("2 MHz",2000000),
+            new Frequenz("2,5 MHz", 2500000),
+            new Frequenz("3 MHz", 3000000),
+            new Frequenz("3,5 MHz",3500000),
+            new Frequenz("4 MHz",4000000),
+            new Frequenz("4,5 MHz",4500000),
+            new Frequenz("5 MHz",5000000),
+            new Frequenz("6 MHz",6000000),
+            new Frequenz("7 MHz",7000000),
+            new Frequenz("8 MHz",8000000),
+            new Frequenz("9 MHz",9000000),
+            new Frequenz("10 MHz",10000000),
+            //TODO evtl. weitere Werte ergänzen            
         };
         private int frequenz=0;
 
+
+        public int get_frequenzcount()
+        {
+            return Frequenzen.Length;
+        }
 
         public void set(int Auswahl)
         {

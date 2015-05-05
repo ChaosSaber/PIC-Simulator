@@ -376,7 +376,7 @@ namespace PIC_Simulator
             label_laufzeit.Text = laufzeitzähler.ToString();
             label_quarzfrquenz.Text = quarzfrequenz.ToString_time();
             //combobox für Quarzfrequenz mit Werten belegen
-            for (int k = 0; k < Quarzfrequenz.MAX; k++)
+            for (int k = 0; k < quarzfrequenz.get_frequenzcount(); k++)
                 comboBox_quarzfrequenz.Items.Add(quarzfrequenz.get_String_frequenz(k));
             comboBox_quarzfrequenz.SelectedIndex = 0;   
         }
