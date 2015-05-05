@@ -68,6 +68,7 @@
     </Compile>
     <Compile Include="Frequenz.cs" />
     <Compile Include="Funktionsgenerator.cs" />
+    <Compile Include="Interrupt.cs" />
     <Compile Include="Laufzeitzähler.cs" />
     <Compile Include="Pins.cs" />
     <Compile Include="Program.cs" />
