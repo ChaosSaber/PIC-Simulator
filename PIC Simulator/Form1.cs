@@ -334,23 +334,8 @@ namespace PIC_Simulator
             Befehlsfunktionen[tokens.sublw] = sublw;
             Befehlsfunktionen[tokens.xorlw] = xorlw;
 
-            //Bei SFR datagrids eine Zeile hinzufügen
-            
-
             //label für SFR mit Werten belegen
             update_SpecialFunctionRegister();
-
-            //Datagrid für PortA und PortB konfigurieren
-            dataGridView_PortA.TopLeftHeaderCell.Value = "RA";
-            dataGridView_PortA.Rows.Add();
-            dataGridView_PortA.Rows.Add();
-            dataGridView_PortA.Rows[0].HeaderCell.Value = "TrisA";
-            dataGridView_PortA.Rows[1].HeaderCell.Value = "PortA";
-            dataGridView_PortB.TopLeftHeaderCell.Value = "RB";
-            dataGridView_PortB.Rows.Add();
-            dataGridView_PortB.Rows.Add();
-            dataGridView_PortB.Rows[0].HeaderCell.Value = "TrisB";
-            dataGridView_PortB.Rows[1].HeaderCell.Value = "PortB";
 
             //Datagrid für PortA und PortB mit Werten belegen
             update_port_datagrids();
@@ -361,9 +346,6 @@ namespace PIC_Simulator
             for (int k = 0; k < quarzfrequenz.get_frequenzcount(); k++)
                 comboBox_quarzfrequenz.Items.Add(quarzfrequenz.get_String_frequenz(k));
             comboBox_quarzfrequenz.SelectedIndex = 0;
-
-
-            
         }
 
         
@@ -383,7 +365,6 @@ namespace PIC_Simulator
             //test_datagrid_fonts();
             //test_timer();
             //test_datagrid_zeile_markieren();
-            MessageBox.Show(FG_frequenz.ToString());
         }
 
 

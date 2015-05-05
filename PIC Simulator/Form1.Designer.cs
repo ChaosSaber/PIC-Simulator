@@ -1006,6 +1006,11 @@
             this.dataGridView_PortA.TabIndex = 19;
             this.dataGridView_PortA.TabStop = false;
             this.dataGridView_PortA.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_PortA_CellClick);
+            dataGridView_PortA.TopLeftHeaderCell.Value = "RA";
+            dataGridView_PortA.Rows.Add();
+            dataGridView_PortA.Rows.Add();
+            dataGridView_PortA.Rows[0].HeaderCell.Value = "TrisA";
+            dataGridView_PortA.Rows[1].HeaderCell.Value = "PortA";
             // 
             // _4
             // 
@@ -1077,6 +1082,11 @@
             this.dataGridView_PortB.TabIndex = 20;
             this.dataGridView_PortB.TabStop = false;
             this.dataGridView_PortB.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_PortB_CellClick);
+            dataGridView_PortB.TopLeftHeaderCell.Value = "RB";
+            dataGridView_PortB.Rows.Add();
+            dataGridView_PortB.Rows.Add();
+            dataGridView_PortB.Rows[0].HeaderCell.Value = "TrisB";
+            dataGridView_PortB.Rows[1].HeaderCell.Value = "PortB";
             // 
             // __7
             // 
