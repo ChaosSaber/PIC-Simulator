@@ -797,6 +797,9 @@
             this.dataGridView_status.TabIndex = 19;
             this.dataGridView_status.TabStop = false;
             this.dataGridView_status.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_status_CellClick);
+            this.dataGridView_status.Rows.Add();
+            this.dataGridView_option.Rows.Add();
+            this.dataGridView_intcon.Rows.Add();
             // 
             // IRP
             // 

@@ -335,9 +335,7 @@ namespace PIC_Simulator
             Befehlsfunktionen[tokens.xorlw] = xorlw;
 
             //Bei SFR datagrids eine Zeile hinzufügen
-            dataGridView_status.Rows.Add();
-            dataGridView_option.Rows.Add();
-            dataGridView_intcon.Rows.Add();
+            
 
             //label für SFR mit Werten belegen
             update_SpecialFunctionRegister();
