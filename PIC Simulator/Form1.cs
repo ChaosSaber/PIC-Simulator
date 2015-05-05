@@ -42,11 +42,11 @@ namespace PIC_Simulator
         public String[] code;   //alle  Zeilen des Dokumentes
         public int[] codezeile; //Zeilenummern die verwertbaren Code enthalten; beginnen im Dokument mit 1 anstatt 0, dashalb bei Ausgabe +1 addieren
         public int[] Befehle;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
-        public Byte[] Speicher = new Byte[256];//Registerspeicher
-        public Byte w_register;
+        
+        
         Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
         Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
-        Byte PCH = 0;//High-Byte des Programmcounter(PC<12:8>)
+       
         Byte RB_alt = 0; //alter Stand(vom letzten Programmzyklus) des Port B, wird für Interrupt benötigt;
         Byte Timer0_alt = 0; //alter Stand(vom letzten Programmzyklus) des Timer0, wird für Interrupt benötigt
         Byte RB0_alt = 0; //alter Stand(vom letzten Programmzyklus) des RB0-Bit, wird für Interrupt benötigt
@@ -63,7 +63,12 @@ namespace PIC_Simulator
 
         Laufzeitzähler laufzeitzähler = new Laufzeitzähler();
         Quarzfrequenz quarzfrequenz = new Quarzfrequenz();
+        Register register;
 
+        public Form1 get_form()
+        {
+            return this;
+        }
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
@@ -153,32 +158,32 @@ namespace PIC_Simulator
         //Manual Seite 27
         public void Power_On_Reset()
         {
-            Speicher[0] = 0;
-            Speicher[2] = 0;
-            Speicher[3] = 0x18;
-            Speicher[5] = 0;//PortA
-            Speicher[7] = 0;
-            Speicher[0x0A] = 0;
-            Speicher[0x0B] = 0;
-            Speicher[0x80] = 0;
-            Speicher[0x81] = 0xFF;
-            Speicher[0x82] = 0;
-            Speicher[0x83] = 0x18;
-            Speicher[0x85] = 0x1F;
-            Speicher[0x86] = 0xFF;
-            Speicher[0x87] = 0;
-            Speicher[0x88] = 0;
-            Speicher[0x89] = 0;
-            Speicher[0x8A] = 0;
-            Speicher[0x8B] = 0;
+            register.Speicher[0] = 0;
+            register.Speicher[2] = 0;
+            register.Speicher[3] = 0x18;
+            register.Speicher[5] = 0;//PortA
+            register.Speicher[7] = 0;
+            register.Speicher[0x0A] = 0;
+            register.Speicher[0x0B] = 0;
+            register.Speicher[0x80] = 0;
+            register.Speicher[0x81] = 0xFF;
+            register.Speicher[0x82] = 0;
+            register.Speicher[0x83] = 0x18;
+            register.Speicher[0x85] = 0x1F;
+            register.Speicher[0x86] = 0xFF;
+            register.Speicher[0x87] = 0;
+            register.Speicher[0x88] = 0;
+            register.Speicher[0x89] = 0;
+            register.Speicher[0x8A] = 0;
+            register.Speicher[0x8B] = 0;
 
             //Variableninitiation
-            PCH = 0;
+            register.PCH = 0;
             Timer0_alt = 0;
-            RB_alt = (Byte)(Speicher[Register.portb] & 0xF0);
-            RB0_alt = (Byte)(Speicher[Register.portb] & 0x01);
+            RB_alt = (Byte)(register.Speicher[Register.portb] & 0xF0);
+            RB0_alt = (Byte)(register.Speicher[Register.portb] & 0x01);
             NOP = false;
-            Ra4_alt = (Byte)(Speicher[Register.porta] & 0x10);
+            Ra4_alt = (Byte)(register.Speicher[Register.porta] & 0x10);
             prescaler = 0;
             stepout = false;
             stepover = false;
@@ -196,20 +201,20 @@ namespace PIC_Simulator
             //manual Seite 27
             //during: normal Operation, sleep
             //WDT-Reset during normal operation
-            PC_setzen(0);
-            Speicher[0x03] &= 0x1F;
+            register.PC_setzen(0);
+            register.Speicher[0x03] &= 0x1F;
             //Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
-            Speicher[0x0A] = 0;
-            Speicher[0x0B] &= 0x01;
-            Speicher[0x81] = 0xFF;
-            Speicher[0x83] &= 0x1F;//Status
+            register.Speicher[0x0A] = 0;
+            register.Speicher[0x0B] &= 0x01;
+            register.Speicher[0x81] = 0xFF;
+            register.Speicher[0x83] &= 0x1F;//Status
             //TODO Status<4:3>:   Table 6-3 lists the RESET value for each specific condition.
-            Speicher[0x85] = 0x1F;
-            Speicher[0x86] = 0xFF;
-            Speicher[0x88] &= 0xE8;//EECON1
+            register.Speicher[0x85] = 0x1F;
+            register.Speicher[0x86] = 0xFF;
+            register.Speicher[0x88] &= 0xE8;//EECON1
             //TODO EECON1<3>:  value depends on condition
-            Speicher[0x8A] = 0;
-            Speicher[0x8B] &= 0x01;
+            register.Speicher[0x8A] = 0;
+            register.Speicher[0x8B] &= 0x01;
             //TODO wie beeinflusst das die Variablen?
 
             update_SpecialFunctionRegister();
@@ -221,9 +226,9 @@ namespace PIC_Simulator
             //Through interrupt
             //through WDT Time-out
 
-            PC_erhöhen();
+            register.PC_erhöhen();
             //TODO STatus(3 und 0x83) depends on condition siehe Tabelle 6-3
-            Speicher[0x88] &= 0xEF;
+            register.Speicher[0x88] &= 0xEF;
             //TODO wie beeinflusst das die Variablen
         }
 
@@ -239,7 +244,7 @@ namespace PIC_Simulator
             for (int i = 0; i < 32; i++)
                 dataGridView_Speicher.Rows[i].HeaderCell.Value = (i * 8).ToString("X2");//sollte eigentlich funktionieren, tut es aber nicht.
             for (int i = 0; i < 256; i++)
-                dataGridView_Speicher[i % 8, i / 8].Value = Speicher[i].ToString("X2");
+                dataGridView_Speicher[i % 8, i / 8].Value = register.Speicher[i].ToString("X2");
         }
 
         //aktuallisiert ein Speicherregister im DataGridView
@@ -247,7 +252,7 @@ namespace PIC_Simulator
         {
             try
             {
-                dataGridView_Speicher[adresse % 8, adresse / 8].Value = Speicher[adresse].ToString("X2");
+                dataGridView_Speicher[adresse % 8, adresse / 8].Value = register.Speicher[adresse].ToString("X2");
             }
             catch(Exception e)
             {
@@ -295,6 +300,8 @@ namespace PIC_Simulator
         
         private void Form1_Load(object sender, EventArgs e)
         {
+            register = new Register(this);
+
             int i = 0;
             foreach (string arg in Environment.GetCommandLineArgs())
             {
@@ -378,7 +385,10 @@ namespace PIC_Simulator
             //combobox für Quarzfrequenz mit Werten belegen
             for (int k = 0; k < quarzfrequenz.get_frequenzcount(); k++)
                 comboBox_quarzfrequenz.Items.Add(quarzfrequenz.get_String_frequenz(k));
-            comboBox_quarzfrequenz.SelectedIndex = 0;   
+            comboBox_quarzfrequenz.SelectedIndex = 0;
+
+
+            
         }
 
         
@@ -474,127 +484,6 @@ namespace PIC_Simulator
         
         /*************************************************************************************************************/
         //Hilfsfunktionen für Befehlsfunktionen
-        public void Z_Flag(Byte ergebnis)
-        {
-            if (ergebnis == 0)
-                Z_Flag_setzen();
-            else
-                Z_Flag_löschen();
-        }
-        public void Z_Flag_setzen()
-        {
-            bit_setzen(Register.status + 0x80, Bits.Z);
-            bit_setzen(Register.status, Bits.Z);
-        }
-        public void Z_Flag_löschen()
-        {
-            bit_löschen(Register.status + 0x80, Bits.Z);
-            bit_löschen(Register.status, Bits.Z);
-        }
-        public void Carry_setzen()
-        {
-            bit_setzen(Register.status + 0x80, Bits.C);
-            bit_setzen(Register.status, Bits.C);
-        }
-        public void Carry_löschen()
-        {
-            bit_löschen(Register.status + 0x80, Bits.C);
-            bit_löschen(Register.status, Bits.C);
-        }
-        public void Digitcarry_setzen()
-        {
-            bit_setzen(Register.status + 0x80, Bits.DC);
-            bit_setzen(Register.status, Bits.DC);
-        }
-        public void Digitcarry_löschen()
-        {
-            bit_löschen(Register.status + 0x80, Bits.DC);
-            bit_löschen(Register.status, Bits.DC);
-        }
-        public void Speicher_mapping(int adresse)
-        {
-            //GPR 0CH-4FH und 8CH-CFH
-            //The GPR addresses in Bank 1 are mapped to addresses in Bank 0. 
-            //As an example, addressing location 0Ch or 8Ch will access the same GPR.
-            /*SFR die gemapped werden
-             * PCL (2)
-             * Status (3)
-             * FSR (4)
-             * PCLATH (AH)
-             * INTCON (BH)
-             */
-            if (adresse > 0xB && adresse < 0x50 || adresse >= 2 && adresse <= 4 || adresse == 0xA || adresse == 0xB) 
-            {
-                Speicher[adresse + 0x80] = Speicher[adresse];
-                Speicher_grid_updaten(adresse + 0x80);
-                return;
-            }
-            if (adresse > 0x8B && adresse < 0xD0 || adresse >= 0x82 && adresse <= 0x84 || adresse == 0x8A || adresse == 0x8B)
-            {
-                Speicher[adresse - 0x80] = Speicher[adresse];
-                Speicher_grid_updaten(adresse - 0x80);
-            }    
-        }
-        public void pcl_geändert(int adresse)
-        {
-            //Wenn dass PCL-Register das Ziel eines Schreibbefehls ist wird das PCLATH-Register ins PCH geladen
-            if (adresse % 0x80 == Register.pcl)
-                PCH = Speicher[Register.pclath];
-        }
-        public void speichern(int adresse,int d, Byte ergebnis)
-        {
-            //d=1->ergebnis in Speicheradresse speichern, d=0 in w-reg speichern
-            if (d > 0)
-            {
-                Speicher[adresse] = ergebnis;
-                pcl_geändert(adresse);
-                timer0_geändert(adresse);
-                Speicher_grid_updaten(adresse);
-                Speicher_mapping(adresse);
-            }
-            else
-                w_register = ergebnis;
-        }
-        public void bit_setzen(int register,int Bit)
-        {
-            Speicher[register] = (Byte)(Speicher[register] | (1 << Bit));
-            Speicher_mapping(register);
-            pcl_geändert(register);
-            timer0_geändert(register);
-            Speicher_grid_updaten(register);
-        }
-        public void bit_löschen(int register, int Bit)
-        {
-            Speicher[register] = (Byte)(Speicher[register] & ~(1 << Bit));
-            Speicher_mapping(register);
-            pcl_geändert(register);
-            timer0_geändert(register);
-            Speicher_grid_updaten(register);
-        }
-        public Boolean bit_gesetzt(int register, int Bit)
-        {
-            return (Speicher[register] & (1 << Bit)) > 0;
-        }
-        public void PC_setzen(int Wert)
-        {
-            Speicher[Register.pcl + 0x80] = (Byte)(Wert & 0xFF);
-            Speicher[Register.pcl] = (Byte)(Wert & 0xFF);
-            PCH = (Byte)((Wert & 0x1F00) >> 8);
-            Speicher_grid_updaten(Register.pcl);
-            Speicher_grid_updaten(Register.pcl + 0x80);
-        }
-        public int PC_ausgeben()
-        {
-            return (PCH << 8) + Speicher[Register.pcl];
-        }
-        public void PC_erhöhen()//PC um 1 erhöhen
-        {
-            if ((Speicher[Register.pcl + 0x80] += 1) == 0)
-                    PCH++;
-            Speicher[Register.pcl] += 1;
-            Speicher_grid_updaten(Register.pcl);
-            Speicher_grid_updaten(Register.pcl + 0x80);
-        }
         public int adressänderungen(ref int adresse)
         {
             //Wenn das RP0-Bit des Statusregisters gesetzt ist wird auf Bank 1 umgeschaltet (alle Register um 80H erhöht)
@@ -603,12 +492,12 @@ namespace PIC_Simulator
             //wenn die Zieladresse das INDF-Register(0 oder 80H bei Bank 1) ist, dann wird anstelle des Registers 0/80H
             //an die Registerstelle gespeichert, die das FSR-Register(4 oder 84H bei Bank 1) enthält
             if (adresse % 0x80 == 0)
-                adresse = Speicher[Register.fsr];
+                adresse = register.Speicher[Register.fsr];
             return adresse;
         }
         public Boolean Bank1()
         {
-            return bit_gesetzt(Register.status, Bits.rp0);
+            return register.bit_gesetzt(Register.status, Bits.rp0);
         }
         
         /*************************************************************************************************************/
@@ -623,24 +512,24 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            int temp = Speicher[adresse] + w_register;
+            int temp = register.Speicher[adresse] + register.w_register;
             if ((adresse % 0x80) != Register.status) 
             {
                 if (temp > 255)//wenn das Ergebnis>255(1Byte) dann setze das Carrybit, ansonsten lösche es
-                    Carry_setzen();
+                    register.Carry_setzen();
                 else
-                    Carry_löschen();
-                if ((Speicher[adresse] & 0xF + w_register & 0xF) > 15)
-                    Digitcarry_setzen();
+                    register.Carry_löschen();
+                if ((register.Speicher[adresse] & 0xF + register.w_register & 0xF) > 15)
+                    register.Digitcarry_setzen();
                 else
-                    Digitcarry_löschen();
+                    register.Digitcarry_löschen();
             }
             
             Byte ergebnis = (Byte)temp;
-            speichern(adresse, d, ergebnis);
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status) 
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -649,11 +538,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(Speicher[adresse] & w_register);
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)(register.Speicher[adresse] & register.w_register);
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status) 
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -661,18 +550,18 @@ namespace PIC_Simulator
         {
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
-            speichern(adresse, 1, 0);
+            register.speichern(adresse, 1, 0);
             if (adresse % 0x80 != Register.status) 
-                Z_Flag(Speicher[adresse]);
-            PC_erhöhen();
+                register.Z_Flag(register.Speicher[adresse]);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
         public void clrw(int codezeile)
         {
-            w_register = 0;
-            Z_Flag(w_register);
-            PC_erhöhen();
+            register.w_register = 0;
+            register.Z_Flag(register.w_register);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -681,11 +570,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)~Speicher[adresse];
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)~register.Speicher[adresse];
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status) 
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -694,11 +583,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(Speicher[adresse] - 1);
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)(register.Speicher[adresse] - 1);
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -707,11 +596,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(Speicher[adresse]-1);
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)(register.Speicher[adresse]-1);
+            register.speichern(adresse, d, ergebnis);
             if (ergebnis == 0)
                 NOP = true;//nächste Anweisung überspringen
-            PC_erhöhen();
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -720,11 +609,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(Speicher[adresse] + 1);
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)(register.Speicher[adresse] + 1);
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -733,11 +622,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(Speicher[adresse] + 1);
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)(register.Speicher[adresse] + 1);
+            register.speichern(adresse, d, ergebnis);
             if (ergebnis == 0)
                 NOP = true;//nächste Anweisung wird überspringen
-            PC_erhöhen();
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -746,11 +635,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(Speicher[adresse] | w_register);
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)(register.Speicher[adresse] | register.w_register);
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -759,10 +648,10 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            speichern(adresse, d, Speicher[adresse]);
+            register.speichern(adresse, d, register.Speicher[adresse]);
             if (adresse % 0x80 != Register.status) 
-                Z_Flag(Speicher[adresse]);
-            PC_erhöhen();
+                register.Z_Flag(register.Speicher[adresse]);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -770,14 +659,14 @@ namespace PIC_Simulator
         {
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
-            speichern(adresse, 1, w_register);
-            PC_erhöhen();
+            register.speichern(adresse, 1, register.w_register);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
         public void nop(int codezeile)
         {
-            PC_erhöhen();
+            register.PC_erhöhen();
             Timer0_Timermode();
             return;//tue nichts
         }
@@ -787,16 +676,16 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Boolean carry = bit_gesetzt(Register.status, Bits.C);//Carrybit zwischenspeichern
-            if (bit_gesetzt(adresse, 7))//wenn Bit7=1 dann setze Carrybit, ansonsten nicht
-                Carry_setzen();
+            Boolean carry = register.bit_gesetzt(Register.status, Bits.C);//Carrybit zwischenspeichern
+            if (register.bit_gesetzt(adresse, 7))//wenn Bit7=1 dann setze Carrybit, ansonsten nicht
+                register.Carry_setzen();
             else
-                Carry_löschen();
-            Byte ergebnis = (Byte)(Speicher[adresse] << 1);
+                register.Carry_löschen();
+            Byte ergebnis = (Byte)(register.Speicher[adresse] << 1);
             if (carry)
                 ergebnis |= (Byte)0x01;//wenn das Carrybit am Anfang gesetzt war, setze das Bit0 auf 1
-            speichern(adresse, d, ergebnis);
-            PC_erhöhen();
+            register.speichern(adresse, d, ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
         
@@ -805,16 +694,16 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Boolean carry = bit_gesetzt(Register.status, Bits.C);//Carrybit zwischenspeichern
-            if (bit_gesetzt(adresse, 0))//wenn Bit0=1 dann setze Carrybit, ansonsten nicht
-                Carry_setzen();
+            Boolean carry = register.bit_gesetzt(Register.status, Bits.C);//Carrybit zwischenspeichern
+            if (register.bit_gesetzt(adresse, 0))//wenn Bit0=1 dann setze Carrybit, ansonsten nicht
+                register.Carry_setzen();
             else
-                Carry_löschen();
-            Byte ergebnis = (Byte)(Speicher[adresse] >> 1);
+                register.Carry_löschen();
+            Byte ergebnis = (Byte)(register.Speicher[adresse] >> 1);
             if (carry)
                 ergebnis |= (Byte)0x80;//wenn das Carrybit am Anfang gesetzt war, setze das Bit7
-            speichern(adresse, d, ergebnis);
-            PC_erhöhen();
+            register.speichern(adresse, d, ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -823,23 +712,23 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            int temp = Speicher[adresse] - w_register;
+            int temp = register.Speicher[adresse] - register.w_register;
             if (adresse % 0x80 != Register.status)
             {
                 if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
-                    Carry_löschen();
+                    register.Carry_löschen();
                 else
-                    Carry_setzen();
-                if ((Speicher[adresse] & 0xF - w_register & 0xF) <= 0)
-                    Digitcarry_setzen();
+                    register.Carry_setzen();
+                if ((register.Speicher[adresse] & 0xF - register.w_register & 0xF) <= 0)
+                    register.Digitcarry_setzen();
                 else
-                    Digitcarry_löschen();
+                    register.Digitcarry_löschen();
             }
             Byte ergebnis = (Byte)temp;
-            speichern(adresse, d, ergebnis);
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -848,10 +737,10 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)((Speicher[adresse] & 0xF0)>>4);//Bit(7-4) maskieren und auf Position 3-0 verschieben
-            ergebnis |= (Byte)((Speicher[adresse] & 0x0F) << 4);//Bit(3-0) maskieren und auf Position 7-4 verschieben sowie mit vorherigen Schritt verodern
-            speichern(adresse, d, ergebnis);
-            PC_erhöhen();
+            Byte ergebnis = (Byte)((register.Speicher[adresse] & 0xF0)>>4);//Bit(7-4) maskieren und auf Position 3-0 verschieben
+            ergebnis |= (Byte)((register.Speicher[adresse] & 0x0F) << 4);//Bit(3-0) maskieren und auf Position 7-4 verschieben sowie mit vorherigen Schritt verodern
+            register.speichern(adresse, d, ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -860,11 +749,11 @@ namespace PIC_Simulator
             int adresse = Befehle[codezeile] & 0x007F;
             adressänderungen(ref adresse);
             int d = Befehle[codezeile] & 0x0080;
-            Byte ergebnis = (Byte)(Speicher[adresse] ^ w_register);
-            speichern(adresse, d, ergebnis);
+            Byte ergebnis = (Byte)(register.Speicher[adresse] ^ register.w_register);
+            register.speichern(adresse, d, ergebnis);
             if (adresse % 0x80 != Register.status)
-                Z_Flag(ergebnis);
-            PC_erhöhen();
+                register.Z_Flag(ergebnis);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -874,8 +763,8 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
-            bit_löschen(adresse, bitnummer);
-            PC_erhöhen();
+            register.bit_löschen(adresse, bitnummer);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -885,8 +774,8 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
-            bit_setzen(adresse, bitnummer);
-            PC_erhöhen();
+            register.bit_setzen(adresse, bitnummer);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -896,9 +785,9 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
-            if (!bit_gesetzt(adresse, bitnummer))
+            if (!register.bit_gesetzt(adresse, bitnummer))
                 NOP = true;//nächste Anweisung NOP
-            PC_erhöhen();
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -908,46 +797,46 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int bitnummer = Befehle[codezeile] & 0x0380;
             bitnummer >>= 7;
-            if (bit_gesetzt(adresse, bitnummer))
+            if (register.bit_gesetzt(adresse, bitnummer))
                 NOP = true;//nächste Anweisung NOP
-            PC_erhöhen();
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
         public void addlw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
-            int temp = literal + w_register;
+            int temp = literal + register.w_register;
             if (temp > 255)//wenn das Ergebnis>255(1 Byte) dann setze das Carrybit, ansonsten lösche es
-                Carry_setzen();
+                register.Carry_setzen();
             else
-                Carry_löschen();
-            if ((literal & 0xF + w_register & 0xF) > 15)
-                Digitcarry_setzen();
+                register.Carry_löschen();
+            if ((literal & 0xF + register.w_register & 0xF) > 15)
+                register.Digitcarry_setzen();
             else
-                Digitcarry_löschen();
-            w_register = (Byte)temp;
-            Z_Flag(w_register);
-            PC_erhöhen();
+                register.Digitcarry_löschen();
+            register.w_register = (Byte)temp;
+            register.Z_Flag(register.w_register);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
         public void andlw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
-            w_register &= (Byte)literal;
-            Z_Flag(w_register);
-            PC_erhöhen();
+            register.w_register &= (Byte)literal;
+            register.Z_Flag(register.w_register);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
         
         public void call(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
-            TOS.Add(PC_ausgeben() + 1);//PC + 1 -> TOS
-            PC_setzen(adresse);//literal -> PC<10:0>
+            TOS.Add(register.PC_ausgeben() + 1);//PC + 1 -> TOS
+            register.PC_setzen(adresse);//literal -> PC<10:0>
             //nächste Zeile kann so ausgeführt werden, da PC<12:11> an dieser Stelle 0
-            PCH |= (Byte)(Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
+            register.PCH |= (Byte)(register.Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11> 
             //2-cycle Instruction
             Timer0_Timermode();
             Timer0_Timermode();
@@ -957,51 +846,51 @@ namespace PIC_Simulator
         {
             //WDT=0;
             //WDT prescaler=0;
-            Speicher[Register.status + 0x80] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
-            Speicher[Register.status] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
-            PC_erhöhen();
+            register.Speicher[Register.status + 0x80] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
+            register.Speicher[Register.status] |= 0x18;//Statusbit TO(Bit4) und PD(Bit3) setzen
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
         
         public void _goto(int codezeile)
         {
             int adresse = Befehle[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
-            PC_setzen(adresse);//literal -> PC<10:0>
-            PCH |= (Byte)(Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11>
+            register.PC_setzen(adresse);//literal -> PC<10:0>
+            register.PCH |= (Byte)(register.Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> PC<12:11>
             Timer0_Timermode();
         }
 
         public void iorlw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
-            w_register |= (Byte)literal;
-            Z_Flag(w_register);
-            PC_erhöhen();
+            register.w_register |= (Byte)literal;
+            register.Z_Flag(register.w_register);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
         public void movlw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
-            w_register = (Byte)literal;
-            PC_erhöhen();
+            register.w_register = (Byte)literal;
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
         
         public void retfie(int codezeile)
         {
             //return from interrupt;
-            PC_setzen(TOS.Pop());//TOS -> PC
-            bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
-            bit_setzen(Register.intcon, Bits.gie);
+            register.PC_setzen(TOS.Pop());//TOS -> PC
+            register.bit_setzen(Register.intcon + 0x80, Bits.gie);//1 -> GIE
+            register.bit_setzen(Register.intcon, Bits.gie);
             Timer0_Timermode();
         }
 
         public void retlw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
-            w_register = (Byte)literal;
-            PC_setzen(TOS.Pop());//TOS -> PC
+            register.w_register = (Byte)literal;
+            register.PC_setzen(TOS.Pop());//TOS -> PC
             //Two-Cycle Instruction
             Timer0_Timermode();
             Timer0_Timermode();
@@ -1010,7 +899,7 @@ namespace PIC_Simulator
         public void _return(int codezeile)
         {
             //return from Subroutine
-            PC_setzen(TOS.Pop());//TOS -> PC
+            register.PC_setzen(TOS.Pop());//TOS -> PC
             //this is a two-cycle instruction
             Timer0_Timermode();
             Timer0_Timermode();
@@ -1021,37 +910,37 @@ namespace PIC_Simulator
             //The processor is put into SLEEP-mode with the oscillator stopped.
             //0 -> WDT
             //0 -> WDT prescaler
-            bit_setzen(Register.status + 0x80, Bits.to);//TO-Bit(4) im Statusregister setzen
-            bit_setzen(Register.status, Bits.to);//TO-Bit(4) im Statusregister setzen
-            bit_löschen(Register.status + 0x80, Bits.pd);//PD-Bit(3) im Statusregister löschen
-            bit_löschen(Register.status, Bits.pd);//PD-Bit(3) im Statusregister löschen            
+            register.bit_setzen(Register.status + 0x80, Bits.to);//TO-Bit(4) im Statusregister setzen
+            register.bit_setzen(Register.status, Bits.to);//TO-Bit(4) im Statusregister setzen
+            register.bit_löschen(Register.status + 0x80, Bits.pd);//PD-Bit(3) im Statusregister löschen
+            register.bit_löschen(Register.status, Bits.pd);//PD-Bit(3) im Statusregister löschen            
             Timer0_Timermode();
         }
 
         public void sublw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
-            int temp = literal - w_register;
+            int temp = literal - register.w_register;
             if (temp <= 0)//wenn das Ergebnis<=0 dann lösche das Carrybit, ansonsten setze es
-                Carry_löschen();
+                register.Carry_löschen();
             else
-                Carry_setzen();
-            if ((literal & 0xF - w_register & 0xF) <=0)
-                Digitcarry_setzen();
+                register.Carry_setzen();
+            if ((literal & 0xF - register.w_register & 0xF) <=0)
+                register.Digitcarry_setzen();
             else
-                Digitcarry_löschen();
-            w_register = (Byte)temp;
-            Z_Flag(w_register);
-            PC_erhöhen();
+                register.Digitcarry_löschen();
+            register.w_register = (Byte)temp;
+            register.Z_Flag(register.w_register);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
         public void xorlw(int codezeile)
         {
             int literal = Befehle[codezeile] & 0x00FF;
-            w_register ^= (Byte)literal;
-            Z_Flag(w_register);
-            PC_erhöhen();
+            register.w_register ^= (Byte)literal;
+            register.Z_Flag(register.w_register);
+            register.PC_erhöhen();
             Timer0_Timermode();
         }
 
@@ -1082,62 +971,62 @@ namespace PIC_Simulator
             {
                 //TODO aus SLEEP-MODE aufwachen
                 //wacht nicht aus SLEEP-Mode auf wenn timer0_interrupt
-                if (bit_gesetzt(Register.intcon, Bits.gie))
+                if (register.bit_gesetzt(Register.intcon, Bits.gie))
                 {
-                    TOS.Add(PC_ausgeben());
-                    PC_setzen(4);
-                    bit_löschen(Register.intcon, Bits.gie);
+                    TOS.Add(register.PC_ausgeben());
+                    register.PC_setzen(4);
+                    register.bit_löschen(Register.intcon, Bits.gie);
                 }
             }
         }
         public void t0if_setzen()
         {//wenn Timer0 überläuft
-            if (Timer0_alt == 255 && Speicher[Register.tmr0] == 0)
-                bit_setzen(Register.intcon, Bits.t0if);
-            Timer0_alt = Speicher[Register.tmr0];
+            if (Timer0_alt == 255 && register.Speicher[Register.tmr0] == 0)
+                register.bit_setzen(Register.intcon, Bits.t0if);
+            Timer0_alt = register.Speicher[Register.tmr0];
         }
         public void intf_setzen()
         {//external interruptflag
             //The RB0/INT external interrupt occurred (must be cleared in software)
             //wenn das intedg im Optionsregister gesetzt ist bei einer steigenden flanke, ansonsten bei einer fallenden
-            if (bit_gesetzt(Register.option_reg, Bits.intedg)) 
+            if (register.bit_gesetzt(Register.option_reg, Bits.intedg)) 
             {
-                if (RB0_alt == 0 && (Speicher[Register.portb] & 0x01) == 1) 
-                    bit_setzen(Register.intcon, Bits.intf);
+                if (RB0_alt == 0 && (register.Speicher[Register.portb] & 0x01) == 1) 
+                    register.bit_setzen(Register.intcon, Bits.intf);
             }
             else
-                if (RB0_alt == 1 && (Speicher[Register.portb] & 0x01) == 0)
-                    bit_setzen(Register.intcon, Bits.intf);
-            RB0_alt = (Byte)(Speicher[Register.portb] & 0x01);
+                if (RB0_alt == 1 && (register.Speicher[Register.portb] & 0x01) == 0)
+                    register.bit_setzen(Register.intcon, Bits.intf);
+            RB0_alt = (Byte)(register.Speicher[Register.portb] & 0x01);
         }
         public void rbif_setzen()
         {//RB Port Change
             //At least one of the RB7:RB4 pins changed state (must be cleared in software)
-            if (RB_alt != (Speicher[Register.portb] & 0xF0))
-                bit_setzen(Register.intcon, Bits.rbif);
-            RB_alt = (Byte)(Speicher[Register.portb] & 0xF0);
+            if (RB_alt != (register.Speicher[Register.portb] & 0xF0))
+                register.bit_setzen(Register.intcon, Bits.rbif);
+            RB_alt = (Byte)(register.Speicher[Register.portb] & 0xF0);
         }
         public Boolean timer0_interrupt()
         {
-            if (bit_gesetzt(Register.intcon, Bits.t0ie) && bit_gesetzt(Register.intcon, Bits.t0if)) 
+            if (register.bit_gesetzt(Register.intcon, Bits.t0ie) && register.bit_gesetzt(Register.intcon, Bits.t0if)) 
                 return true;
             return false;
         }
         public Boolean external_Interrupt()
         {
-            if (bit_gesetzt(Register.intcon, Bits.inte) && bit_gesetzt(Register.intcon, Bits.intf))
+            if (register.bit_gesetzt(Register.intcon, Bits.inte) && register.bit_gesetzt(Register.intcon, Bits.intf))
                 return true;
             return false;
         }
         public Boolean rb0_interrupt()
         {
-            if (bit_gesetzt(Register.intcon, Bits.rbie) && bit_gesetzt(Register.intcon, Bits.rbif))
+            if (register.bit_gesetzt(Register.intcon, Bits.rbie) && register.bit_gesetzt(Register.intcon, Bits.rbif))
                 return true;
             return false;
         }
         public Boolean EE_interrupt()
         {//EE Write Complete Interrupt
-            if (bit_gesetzt(Register.intcon, Bits.eeie) && bit_gesetzt(Register.eecon1, Bits.eeif)) 
+            if (register.bit_gesetzt(Register.intcon, Bits.eeie) && register.bit_gesetzt(Register.eecon1, Bits.eeif)) 
                 return true;
             return false;
         }
@@ -1163,36 +1052,36 @@ namespace PIC_Simulator
              * wenn das T0SE-Bit im Optionsregister gesetzt ist wird bei einer fallenden
              * Flanke das Timer0-Register erhöht, ansonsten bei einer fallenden
              */
-            if(bit_gesetzt(Register.option_reg,Bits.t0cs))
+            if(register.bit_gesetzt(Register.option_reg,Bits.t0cs))
             {
-                if(bit_gesetzt(Register.option_reg,Bits.t0se))
+                if(register.bit_gesetzt(Register.option_reg,Bits.t0se))
                 {//ra4_alt==16, weil es das 5. Bit ist;2^4=16
-                    if (Ra4_alt == 16 && (Speicher[Register.porta] & 0x10) == 0)
+                    if (Ra4_alt == 16 && (register.Speicher[Register.porta] & 0x10) == 0)
                         timer0_erhöhen();
                 }
                 else
                 {//5.Bit deshalb 16(2^4=16)
-                    if (Ra4_alt == 0 && (Speicher[Register.porta] & 0x10) == 16)
+                    if (Ra4_alt == 0 && (register.Speicher[Register.porta] & 0x10) == 16)
                         timer0_erhöhen();
                 }
             }
-            Ra4_alt = (Byte)(Speicher[Register.porta] & 0x10);
+            Ra4_alt = (Byte)(register.Speicher[Register.porta] & 0x10);
         }
 
         public void timer0_geändert(int adresse)
         {
             //wenn das Timer0 register beschrieben wird und der Prescaler dem Timer0 zugewiesen ist
             //wird der Prescaler resettet
-            if (adresse == Register.tmr0 && !bit_gesetzt(Register.option_reg, Bits.psa)) 
+            if (adresse == Register.tmr0 && !register.bit_gesetzt(Register.option_reg, Bits.psa)) 
                 prescaler = 0;
         }
 
         public void timer0_erhöhen()
         {
             //wenn das PSA-Bit im Optionsregister NICHT gesetzt ist wird der Prescaler dem Timer0 zugewiesen
-            if (bit_gesetzt(Register.option_reg, Bits.psa))
+            if (register.bit_gesetzt(Register.option_reg, Bits.psa))
             {
-                Speicher[Register.tmr0]++;
+                register.Speicher[Register.tmr0]++;
                 t0if_setzen();
             }
             else
@@ -1201,9 +1090,9 @@ namespace PIC_Simulator
                 //Prescaler PS2:PS0(Bit0-2 vom Optionsregister)
                 //prescale value von 1:2,1:4,...,1:256
                 //000==1:2;001==1:4.......
-                if (Math.Pow(2, (Speicher[Register.option_reg] & 0x07) + 1) >= prescaler) 
+                if (Math.Pow(2, (register.Speicher[Register.option_reg] & 0x07) + 1) >= prescaler) 
                 {
-                    Speicher[Register.tmr0]++;
+                    register.Speicher[Register.tmr0]++;
                     t0if_setzen();
                     prescaler = 0;
                 }
@@ -1212,7 +1101,7 @@ namespace PIC_Simulator
         public void Timer0_Timermode()
         {
             //wenn Timer0 im Timer mode erhöhe den Timer0
-            if (!bit_gesetzt(Register.option_reg, Bits.t0cs))
+            if (!register.bit_gesetzt(Register.option_reg, Bits.t0cs))
                 timer0_erhöhen();
 
         }
@@ -1267,46 +1156,46 @@ namespace PIC_Simulator
         }
         public void test_datagrid()
         {
-            Speicher[0] = 30;
-            Speicher[1] = 200;
-            Speicher[9] = 0xF0;
+            register.Speicher[0] = 30;
+            register.Speicher[1] = 200;
+            register.Speicher[9] = 0xF0;
             Speicher_grid_updaten(0);
             Speicher_grid_updaten(1);
             Speicher_grid_updaten(9);
         }
         public void test_speicher()
         {
-            MessageBox.Show(Speicher[0].ToString() + " " + Speicher[1].ToString() + " " + Speicher[9].ToString());
+            MessageBox.Show(register.Speicher[0].ToString() + " " + register.Speicher[1].ToString() + " " + register.Speicher[9].ToString());
         }
         public void test_Simulation()
         {
             while(true)
             {
-                int zeilennummer = PC_ausgeben();
+                int zeilennummer = register.PC_ausgeben();
                 Befehlsfunktionen[parser(zeilennummer)](zeilennummer);
                 MessageBox.Show("Programmzeile: " + (1 + codezeile[zeilennummer]).ToString() + "\n" +
-                    "w_register: " + w_register.ToString() + "\n" +
-                    "Count: " + Speicher[0xC].ToString() + "\n" +
-                    "fsr: " + Speicher[4].ToString() + "\n" +
-                    "indirect: " + Speicher[0].ToString() + "\n" +
-                    "10H: " + Speicher[0x10].ToString() + "\n" +
-                    "11H: " + Speicher[0x11].ToString() + "\n" +
-                    "12H: " + Speicher[0x12].ToString() + "\n" +
-                    "13H: " + Speicher[0x13].ToString() + "\n" +
-                    "14H: " + Speicher[0x14].ToString() + "\n" +
-                    "15H: " + Speicher[0x15].ToString() + "\n" +
-                    "16H: " + Speicher[0x16].ToString() + "\n" +
-                    "17H: " + Speicher[0x17].ToString() + "\n" +
-                    "18H: " + Speicher[0x18].ToString() + "\n" +
-                    "19H: " + Speicher[0x19].ToString() + "\n" +
-                    "1AH: " + Speicher[0x1A].ToString() + "\n" +
-                    "1BH: " + Speicher[0x1B].ToString() + "\n" +
-                    "1CH: " + Speicher[0x1C].ToString() + "\n" +
-                    "1DH: " + Speicher[0x1D].ToString() + "\n" +
-                    "1EH: " + Speicher[0x1E].ToString() + "\n" +
-                    "1FH: " + Speicher[0x1F].ToString() + "\n" +
-                    "0FH: " + Speicher[0x0F].ToString() + "\n" +
-                    "0EH: " + Speicher[0x0E].ToString() + "\n");
+                    "register.w_register: " + register.w_register.ToString() + "\n" +
+                    "Count: " + register.Speicher[0xC].ToString() + "\n" +
+                    "fsr: " + register.Speicher[4].ToString() + "\n" +
+                    "indirect: " + register.Speicher[0].ToString() + "\n" +
+                    "10H: " + register.Speicher[0x10].ToString() + "\n" +
+                    "11H: " + register.Speicher[0x11].ToString() + "\n" +
+                    "12H: " + register.Speicher[0x12].ToString() + "\n" +
+                    "13H: " + register.Speicher[0x13].ToString() + "\n" +
+                    "14H: " + register.Speicher[0x14].ToString() + "\n" +
+                    "15H: " + register.Speicher[0x15].ToString() + "\n" +
+                    "16H: " + register.Speicher[0x16].ToString() + "\n" +
+                    "17H: " + register.Speicher[0x17].ToString() + "\n" +
+                    "18H: " + register.Speicher[0x18].ToString() + "\n" +
+                    "19H: " + register.Speicher[0x19].ToString() + "\n" +
+                    "1AH: " + register.Speicher[0x1A].ToString() + "\n" +
+                    "1BH: " + register.Speicher[0x1B].ToString() + "\n" +
+                    "1CH: " + register.Speicher[0x1C].ToString() + "\n" +
+                    "1DH: " + register.Speicher[0x1D].ToString() + "\n" +
+                    "1EH: " + register.Speicher[0x1E].ToString() + "\n" +
+                    "1FH: " + register.Speicher[0x1F].ToString() + "\n" +
+                    "0FH: " + register.Speicher[0x0F].ToString() + "\n" +
+                    "0EH: " + register.Speicher[0x0E].ToString() + "\n");
             }
             
         }
@@ -1354,7 +1243,7 @@ namespace PIC_Simulator
             reset = true;
             Power_On_Reset();
             Programm_start(false);
-            markiere_zeile(codezeile[PC_ausgeben()]);
+            markiere_zeile(codezeile[register.PC_ausgeben()]);
         }
 
         private void StartStopButton_Click(object sender, EventArgs e)
@@ -1433,10 +1322,10 @@ namespace PIC_Simulator
         public void Programmablauf()
         {
             Interrupt();
-            int zeilennummer = PC_ausgeben();
+            int zeilennummer = register.PC_ausgeben();
             int befehl=parser(zeilennummer);
             Befehlsfunktionen[befehl](zeilennummer);
-            if (breakpoint[PC_ausgeben()]) 
+            if (breakpoint[register.PC_ausgeben()]) 
             {
                 Programm_start(false);
             }
@@ -1451,7 +1340,7 @@ namespace PIC_Simulator
                 stepout = false;
                 Programm_start(false);
             }
-            if(stepover&&temp_breakpoint==PC_ausgeben())
+            if(stepover&&temp_breakpoint==register.PC_ausgeben())
             {
                 stepover = false;
                 Programm_start(false);
@@ -1459,7 +1348,7 @@ namespace PIC_Simulator
                 temp_breakpoint = -1;
             }
             //nächste Zeile markieren
-            markiere_zeile(codezeile[PC_ausgeben()]);
+            markiere_zeile(codezeile[register.PC_ausgeben()]);
             //GUI updaten
             update_SpecialFunctionRegister();
             update_port_datagrids();
@@ -1471,8 +1360,8 @@ namespace PIC_Simulator
         private void IgnoreButton_Click(object sender, EventArgs e)
         {
             //überspringt den nächsten Befehl(ändert nur den PC)
-            PC_erhöhen();
-            markiere_zeile(codezeile[PC_ausgeben()]);
+            register.PC_erhöhen();
+            markiere_zeile(codezeile[register.PC_ausgeben()]);
         }
 
         private void StepInButton_Click(object sender, EventArgs e)
@@ -1497,38 +1386,38 @@ namespace PIC_Simulator
             //wird, stoppt die Simulation. Sollte das Programm in eine Endlosschleife laufen, kann man die Simulation
             //durch Reset (F2) abbrechen.
             stepover = true;
-            temp_breakpoint = PC_ausgeben() + 1;
-            PC_setzen(0);
-            markiere_zeile(codezeile[PC_ausgeben()]);
+            temp_breakpoint = register.PC_ausgeben() + 1;
+            register.PC_setzen(0);
+            markiere_zeile(codezeile[register.PC_ausgeben()]);
             dataGridView_code[0, codezeile[temp_breakpoint]].Value = "b";
             Programm_start(true);
         }
 
         public void update_SpecialFunctionRegister()
         {
-            label_w_register.Text = w_register.ToString("X2");
-            label_fsr.Text = Speicher[Register.fsr].ToString("X2");
-            label_pcl.Text = Speicher[Register.pcl].ToString("X2");
-            label_pclath.Text = Speicher[Register.pclath].ToString("X2");
-            label_pc.Text = PC_ausgeben().ToString("X4");
-            label_status.Text = Speicher[Register.status].ToString("X2");
-            label_option.Text = Speicher[Register.option_reg].ToString("X2");
-            label_intcon.Text = Speicher[Register.intcon].ToString("X2");
+            label_w_register.Text = register.w_register.ToString("X2");
+            label_fsr.Text = register.Speicher[Register.fsr].ToString("X2");
+            label_pcl.Text = register.Speicher[Register.pcl].ToString("X2");
+            label_pclath.Text = register.Speicher[Register.pclath].ToString("X2");
+            label_pc.Text = register.PC_ausgeben().ToString("X4");
+            label_status.Text = register.Speicher[Register.status].ToString("X2");
+            label_option.Text = register.Speicher[Register.option_reg].ToString("X2");
+            label_intcon.Text = register.Speicher[Register.intcon].ToString("X2");
             //status, option, intcon datagrids mit Werten belegen
             for (int i = 0; i < 8; i++)
             {
                 //status
-                if (bit_gesetzt(Register.status, 7 - i))
+                if (register.bit_gesetzt(Register.status, 7 - i))
                     dataGridView_status[i, 0].Value = "1";
                 else
                     dataGridView_status[i, 0].Value = "0";
                 //option
-                if (bit_gesetzt(Register.option_reg, 7 - i))
+                if (register.bit_gesetzt(Register.option_reg, 7 - i))
                     dataGridView_option[i, 0].Value = "1";
                 else
                     dataGridView_option[i, 0].Value = "0";
                 //intcon
-                if (bit_gesetzt(Register.intcon, 7 - i))
+                if (register.bit_gesetzt(Register.intcon, 7 - i))
                     dataGridView_intcon[i, 0].Value = "1";
                 else
                     dataGridView_intcon[i, 0].Value = "0";
@@ -1542,12 +1431,12 @@ namespace PIC_Simulator
             for (int i = 0; i < 5; i++)
             {
                 //datagrid portA
-                if (bit_gesetzt(Register.porta, 5 - i))
+                if (register.bit_gesetzt(Register.porta, 5 - i))
                     dataGridView_PortA[i, 1].Value = "1";
                 else
                     dataGridView_PortA[i, 1].Value = "0";
                 //datagrid TrisA
-                if (bit_gesetzt(Register.trisa, 5 - i))
+                if (register.bit_gesetzt(Register.trisa, 5 - i))
                     dataGridView_PortA[i, 0].Value = "i";
                 else
                     dataGridView_PortA[i, 0].Value = "o";
@@ -1555,12 +1444,12 @@ namespace PIC_Simulator
             for (int i = 0; i < 8; i++)
             {
                 //datagrid PortB
-                if (bit_gesetzt(Register.portb, 7 - i))
+                if (register.bit_gesetzt(Register.portb, 7 - i))
                     dataGridView_PortB[i, 1].Value = "1";
                 else
                     dataGridView_PortB[i, 1].Value = "0";
                 //datagrid TrisB
-                if (bit_gesetzt(Register.trisb, 7 - i))
+                if (register.bit_gesetzt(Register.trisb, 7 - i))
                     dataGridView_PortB[i, 0].Value = "i";
                 else
                     dataGridView_PortB[i, 0].Value = "o";
@@ -1578,12 +1467,12 @@ namespace PIC_Simulator
             if (dataGridView_status[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_status[e.ColumnIndex, 0].Value = "0";
-                bit_löschen(Register.status, 7 - e.ColumnIndex);
+                register.bit_löschen(Register.status, 7 - e.ColumnIndex);
             }
             else
             {
                 dataGridView_status[e.ColumnIndex, 0].Value = "1";
-                bit_setzen(Register.status, 7 - e.ColumnIndex);
+                register.bit_setzen(Register.status, 7 - e.ColumnIndex);
             }
             update_SpecialFunctionRegister();
         }
@@ -1593,12 +1482,12 @@ namespace PIC_Simulator
             if (dataGridView_option[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_option[e.ColumnIndex, 0].Value = "0";
-                bit_löschen(Register.option_reg, 7 - e.ColumnIndex);
+                register.bit_löschen(Register.option_reg, 7 - e.ColumnIndex);
             }
             else
             {
                 dataGridView_option[e.ColumnIndex, 0].Value = "1";
-                bit_setzen(Register.option_reg, 7 - e.ColumnIndex);
+                register.bit_setzen(Register.option_reg, 7 - e.ColumnIndex);
             }
             update_SpecialFunctionRegister();
         }
@@ -1608,26 +1497,26 @@ namespace PIC_Simulator
             if (dataGridView_intcon[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_intcon[e.ColumnIndex, 0].Value = "0";
-                bit_löschen(Register.intcon, 7 - e.ColumnIndex);
+                register.bit_löschen(Register.intcon, 7 - e.ColumnIndex);
             }
             else
             {
                 dataGridView_intcon[e.ColumnIndex, 0].Value = "1";
-                bit_setzen(Register.intcon, 7 - e.ColumnIndex);
+                register.bit_setzen(Register.intcon, 7 - e.ColumnIndex);
             }
             update_SpecialFunctionRegister();
         }
 
         private void dataGridView_Speicher_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            int register = e.RowIndex * 8 + e.ColumnIndex;
+            int Registerspeicher = e.RowIndex * 8 + e.ColumnIndex;
             string input = "";
-            DialogResult result = ShowInputDialog(ref input, register);
+            DialogResult result = ShowInputDialog(ref input, Registerspeicher);
             if (result == DialogResult.OK)
             {
                 int temp = Convert.ToInt32(input, 16);
-                Speicher[register] = (Byte)temp;
-                Speicher_grid_updaten(register);
+                register.Speicher[Registerspeicher] = (Byte)temp;
+                Speicher_grid_updaten(Registerspeicher);
             }
         }
 
@@ -1646,7 +1535,7 @@ namespace PIC_Simulator
             System.Windows.Forms.Label label = new Label();
             label.Location = new System.Drawing.Point(2, 5);
             label.Visible = true;
-            label.Text = "    Bitte geben sie den Wert als\n     Hexwert ein, den sie in das\nRegister " + register.ToString("X2") + "H speichern möchten";
+            label.Text = "    Bitte geben sie den Wert als\n     Hexwert ein, den sie in das\nRegister " + register.ToString("X2") + "H register.speichern möchten";
             label.Size = new Size(label.PreferredWidth, label.PreferredHeight);
             inputBox.Controls.Add(label);
 
@@ -1684,10 +1573,10 @@ namespace PIC_Simulator
         {
             if (e.RowIndex == 0)
                 return;
-            if (bit_gesetzt(Register.porta, 5 - e.ColumnIndex))
-                bit_löschen(Register.porta, 5 - e.ColumnIndex);
+            if (register.bit_gesetzt(Register.porta, 5 - e.ColumnIndex))
+                register.bit_löschen(Register.porta, 5 - e.ColumnIndex);
             else
-                bit_setzen(Register.porta, 5 - e.ColumnIndex);
+                register.bit_setzen(Register.porta, 5 - e.ColumnIndex);
             update_port_datagrids();
         }
 
@@ -1695,10 +1584,10 @@ namespace PIC_Simulator
         {
             if (e.RowIndex == 0)
                 return;
-            if (bit_gesetzt(Register.portb, 7 - e.ColumnIndex))
-                bit_löschen(Register.portb, 7 - e.ColumnIndex);
+            if (register.bit_gesetzt(Register.portb, 7 - e.ColumnIndex))
+                register.bit_löschen(Register.portb, 7 - e.ColumnIndex);
             else
-                bit_setzen(Register.portb, 7 - e.ColumnIndex);
+                register.bit_setzen(Register.portb, 7 - e.ColumnIndex);
             update_port_datagrids();
         }
 
@@ -1901,10 +1790,10 @@ namespace PIC_Simulator
         {
             if(FG_pin>2)
             {
-                if (bit_gesetzt(FG_pin / 10, FG_pin % 10))
-                    bit_löschen(FG_pin / 10, FG_pin % 10);
+                if (register.bit_gesetzt(FG_pin / 10, FG_pin % 10))
+                    register.bit_löschen(FG_pin / 10, FG_pin % 10);
                 else
-                    bit_setzen(FG_pin / 10, FG_pin % 10);
+                    register.bit_setzen(FG_pin / 10, FG_pin % 10);
                 update_port_datagrids();
                 Speicher_grid_updaten(FG_pin / 10);
             }
