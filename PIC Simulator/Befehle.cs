@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
 
 namespace PIC_Simulator
 {
@@ -63,7 +65,7 @@ namespace PIC_Simulator
                     register.Carry_setzen();
                 else
                     register.Carry_löschen();
-                if ((register.Speicher[adresse] & 0xF + register.w_register & 0xF) > 15)
+                if (((register.Speicher[adresse] & 0xF) + (register.w_register & 0xF)) > 15)
                     register.Digitcarry_setzen();
                 else
                     register.Digitcarry_löschen();
@@ -193,7 +195,7 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int d = PIC.Befehl[codezeile] & 0x0080;
             register.speichern(adresse, d, register.Speicher[adresse]);
-            if (adresse % 0x80 != Register.status)
+            if ((adresse % 0x80 != Register.status) || d == 0) 
                 register.Z_Flag(register.Speicher[adresse]);
             PC.erhöhen();
             timer0.Timermode();
@@ -257,13 +259,13 @@ namespace PIC_Simulator
             adressänderungen(ref adresse);
             int d = PIC.Befehl[codezeile] & 0x0080;
             int temp = register.Speicher[adresse] - register.w_register;
-            if (adresse % 0x80 != Register.status)
+            if ((adresse % 0x80 != Register.status) || d == 0) 
             {
                 if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
-                    register.Carry_löschen();
-                else
                     register.Carry_setzen();
-                if ((register.Speicher[adresse] & 0xF - register.w_register & 0xF) <= 0)
+                else
+                    register.Carry_löschen();
+                if (((register.Speicher[adresse] & 0xF) - (register.w_register & 0xF)) <= 0)
                     register.Digitcarry_setzen();
                 else
                     register.Digitcarry_löschen();
