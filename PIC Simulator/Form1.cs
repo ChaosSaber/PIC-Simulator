@@ -337,90 +337,14 @@ namespace PIC_Simulator
 
         private void button1_Click(object sender, EventArgs e)//testfunktion
         {
-            
-        }
-
-
-
-        /*************************************************************************************************************/
-        //Parser
-        public int parser(int codezeile)
-        {
-            int maskiert;
-            if (NOP)
+            //TODO test ob Parser noch korrekt ist
+            for (int i = 0; i < Befehl.Length; i++)
             {
-                NOP = false;//NOP zurücksetzen damit die nächste Zeile wieder normal ausgeführt wird
-                return tokens.nop;
+                markiere_zeile(codezeile[i]);
+                MessageBox.Show((codezeile[i] + 1).ToString() + ": " + Parser.parsen(Befehl[i], ref NOP).ToString(""));
             }
-            //Befehle mit bestimmter Codeabfolge
-            if (Befehl[codezeile] == 0x0064) return tokens.clrwdt;
-            if (Befehl[codezeile] == 0x0009) return tokens.retfie;
-            if (Befehl[codezeile] == 0x0008) return tokens._return;
-            if (Befehl[codezeile] == 0x0063) return tokens.sleep;
-
-            //NOP
-            maskiert = Befehl[codezeile] & 0xFF9F;
-            if (maskiert == 0) return tokens.nop;
-
-            //Befehle mit 3-stelliger Codeabfolge
-            maskiert = Befehl[codezeile] & 0xF800;
-            if (maskiert == 0x2000) return tokens.call;
-            if (maskiert == 0x2800) return tokens._goto;
-
-            //Befehle mit 4-stelliger Codeabfolge
-            maskiert = Befehl[codezeile] & 0xFC00;
-            if (maskiert == 0x1000) return tokens.bcf;
-            if (maskiert == 0x1400) return tokens.bsf;
-            if (maskiert == 0x1800) return tokens.btfsc;
-            if (maskiert == 0x1C00) return tokens.btfss;
-            if (maskiert == 0x3000) return tokens.movlw;
-            if (maskiert == 0x3400) return tokens.retlw;
-
-            //Befehle mit 5-stelliger Codeabfolge
-            maskiert = Befehl[codezeile] & 0xFE00;
-            if (maskiert == 0x3E00) return tokens.addlw;
-            if (maskiert == 0x3C00) return tokens.sublw;
-
-            //Befehle mit 6-stelliger codeabfolge
-            maskiert = Befehl[codezeile] & 0xFF00;
-            if (maskiert == 0x0700) return tokens.addwf;
-            if (maskiert == 0x0500) return tokens.andwf;
-            if (maskiert == 0x0900) return tokens.comf;
-            if (maskiert == 0x0300) return tokens.decf;
-            if (maskiert == 0x0B00) return tokens.decfsz;
-            if (maskiert == 0x0A00) return tokens.incf;
-            if (maskiert == 0x0F00) return tokens.incfsz;
-            if (maskiert == 0x0400) return tokens.iorwf;
-            if (maskiert == 0x0800) return tokens.movf;
-            if (maskiert == 0x0D00) return tokens.rlf;
-            if (maskiert == 0x0C00) return tokens.rrf;
-            if (maskiert == 0x0200) return tokens.subwf;
-            if (maskiert == 0x0E00) return tokens.swapf;
-            if (maskiert == 0x0600) return tokens.xorwf;
-            if (maskiert == 0x3900) return tokens.andlw;
-            if (maskiert == 0x3800) return tokens.iorlw;
-            if (maskiert == 0x3A00) return tokens.xorlw;
-
-            //Befehle mit 7-stelliger Codeabfolge
-            maskiert = Befehl[codezeile] & 0xFF80;
-            if (maskiert == 0x0180) return tokens.clrf;
-            if (maskiert == 0x0100) return tokens.clrw;
-            if (maskiert == 0x0080) return tokens.movwf;
-
-            //ansonsten
-            return -1;
         }
-        
-        
 
-
-
-
-        /*************************************************************************************************************/
-        //Timer0 
-
-        //Variablen
-        
 
         //timer der den Timer0 Clock mode steuert
         //wird etwa alle 50ms ausgeführt
@@ -428,14 +352,6 @@ namespace PIC_Simulator
         {
             timer0.ausführen();
         }
-
-        
-
-
-
-
-        //Timer0 Ende
-        /*************************************************************************************************************/
 
 
         /*************************************************************************************************************/
@@ -531,11 +447,18 @@ namespace PIC_Simulator
         {
             interrupt.ausführen();
             int zeilennummer = PC.get();
-            int befehl=parser(zeilennummer);
-            Befehlsfunktionen[befehl](zeilennummer);
-            if (breakpoint[PC.get()]) 
+            int anweisung = Parser.parsen(Befehl[zeilennummer], ref NOP);
+            Befehlsfunktionen[anweisung](zeilennummer);
+            try
             {
-                Programm_start(false);
+                if (breakpoint[PC.get()])
+                {
+                    Programm_start(false);
+                }
+            }
+            catch(Exception e)
+            {
+                MessageBox.Show(PC.get().ToString("X2"));
             }
             if(reset)
             {
@@ -543,7 +466,7 @@ namespace PIC_Simulator
                 Programm_start(false);
                 Power_On_Reset();
             }
-            if (stepout && (befehl == tokens.retfie || befehl == tokens.retlw || befehl == tokens._return)) 
+            if (stepout && (anweisung == tokens.retfie || anweisung == tokens.retlw || anweisung == tokens._return)) 
             {
                 stepout = false;
                 Programm_start(false);

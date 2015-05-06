@@ -953,7 +953,7 @@ namespace PIC_Simulator
             // 
             // programmtimer
             // 
-            this.programmtimer.Interval = 20;
+            this.programmtimer.Interval = 50;
             this.programmtimer.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // dataGridView_code

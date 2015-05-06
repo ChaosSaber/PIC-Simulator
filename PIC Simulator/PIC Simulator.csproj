@@ -71,6 +71,7 @@
     <Compile Include="Funktionsgenerator.cs" />
     <Compile Include="Interrupt.cs" />
     <Compile Include="Laufzeitzähler.cs" />
+    <Compile Include="Parser.cs" />
     <Compile Include="Pins.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Programmcounter.cs" />
