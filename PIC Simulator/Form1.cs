@@ -42,29 +42,26 @@ namespace PIC_Simulator
         public String[] code;   //alle  Zeilen des Dokumentes
         public int[] codezeile; //Zeilenummern die verwertbaren Code enthalten; beginnen im Dokument mit 1 anstatt 0, dashalb bei Ausgabe +1 addieren
         public int[] Befehl;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
-        
-        
-        public Boolean NOP = false; //wenn NOP= true, dann wird die nächste Anweisung übersprungen
-        Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
        
-        Boolean[] breakpoint;//Boolwert ob die Zeile einen Breakpoint enthält
+        public Boolean[] breakpoint;//Boolwert ob die Zeile einen Breakpoint enthält
         Boolean reset = false;//wenn dieser Wert true ist wird das laufende Programm abgebrochen
         Boolean stepout = false;//wenn dieser wert true ist wird das laufende Programm abgebrochen sobald es auf ein return trifft;
         Boolean stepover = false;//bestimmt ob sich das Programm im stepovermodus befindet
         int temp_breakpoint = -1;//temporärer Breakpoint für stepover
         String contextmenustrip_aufrufer = "";
         
-
+        Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
         Laufzeitzähler laufzeitzähler = new Laufzeitzähler();
         Quarzfrequenz quarzfrequenz = new Quarzfrequenz();
         internal Register register;
         internal Programmcounter PC;
         internal Funktionsgenerator FG;
         internal Interrupt interrupt;
-        internal Befehle befehle;
+        
         internal Timer0 timer0;
+        internal Programmablauf program;
 
-        static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
+        
 
         
 
@@ -159,12 +156,8 @@ namespace PIC_Simulator
             //Variableninitiation
             PC.PCH = 0;
             interrupt.init();
-            NOP = false;
+            program.init();
             timer0.init();
-            stepout = false;
-            stepover = false;
-            temp_breakpoint = -1;
-            reset = false;
 
             for (int i = 0; i < breakpoint.Length; i++)
                 breakpoint[i] = false;
@@ -262,7 +255,7 @@ namespace PIC_Simulator
             FG = new Funktionsgenerator(this, register);
             interrupt = new Interrupt(this, register, TOS, PC);
             timer0 = new Timer0(register, interrupt);
-            befehle = new Befehle(this, register, PC, TOS, timer0);
+            program = new Programmablauf(this, PC, interrupt, laufzeitzähler, quarzfrequenz, register, TOS, timer0);
 
             int i = 0;
             foreach (string arg in Environment.GetCommandLineArgs())
@@ -282,42 +275,7 @@ namespace PIC_Simulator
 
             Speicher_grid_befüllen();
                      
-            //Array der Befehlsfunktionen initialisieren
-            Befehlsfunktionen[tokens.addwf] = befehle.addwf;
-            Befehlsfunktionen[tokens.andwf] = befehle.andwf;
-            Befehlsfunktionen[tokens.clrf] = befehle.clrf;
-            Befehlsfunktionen[tokens.clrw] = befehle.clrw;
-            Befehlsfunktionen[tokens.comf] = befehle.comf;
-            Befehlsfunktionen[tokens.decf] = befehle.decf;
-            Befehlsfunktionen[tokens.decfsz] = befehle.decfsz;
-            Befehlsfunktionen[tokens.incf] = befehle.incf;
-            Befehlsfunktionen[tokens.incfsz] = befehle.incfsz;
-            Befehlsfunktionen[tokens.iorwf] = befehle.iorwf;
-            Befehlsfunktionen[tokens.movf] = befehle.movf;
-            Befehlsfunktionen[tokens.movwf] = befehle.movwf;
-            Befehlsfunktionen[tokens.nop] = befehle.nop;
-            Befehlsfunktionen[tokens.rlf] = befehle.rlf;
-            Befehlsfunktionen[tokens.rrf] = befehle.rrf;
-            Befehlsfunktionen[tokens.subwf] = befehle.subwf;
-            Befehlsfunktionen[tokens.swapf] = befehle.swapf;
-            Befehlsfunktionen[tokens.xorwf] = befehle.xorwf;
-            Befehlsfunktionen[tokens.bcf] = befehle.bcf;
-            Befehlsfunktionen[tokens.bsf] = befehle.bsf;
-            Befehlsfunktionen[tokens.btfsc] = befehle.btfsc;
-            Befehlsfunktionen[tokens.btfss] = befehle.btfss;
-            Befehlsfunktionen[tokens.addlw] = befehle.addlw;
-            Befehlsfunktionen[tokens.andlw] = befehle.andlw;
-            Befehlsfunktionen[tokens.call] = befehle.call;
-            Befehlsfunktionen[tokens.clrwdt] = befehle.clrwdt;
-            Befehlsfunktionen[tokens._goto] = befehle._goto;
-            Befehlsfunktionen[tokens.iorlw] = befehle.iorlw;
-            Befehlsfunktionen[tokens.movlw] = befehle.movlw;
-            Befehlsfunktionen[tokens.retfie] = befehle.retfie;
-            Befehlsfunktionen[tokens.retlw] = befehle.retlw;
-            Befehlsfunktionen[tokens._return] = befehle._return;
-            Befehlsfunktionen[tokens.sleep] = befehle.sleep;
-            Befehlsfunktionen[tokens.sublw] = befehle.sublw;
-            Befehlsfunktionen[tokens.xorlw] = befehle.xorlw;
+            
 
             //label für SFR mit Werten belegen
             update_SpecialFunctionRegister();
@@ -337,12 +295,6 @@ namespace PIC_Simulator
 
         private void button1_Click(object sender, EventArgs e)//testfunktion
         {
-            //TODO test ob Parser noch korrekt ist
-            for (int i = 0; i < Befehl.Length; i++)
-            {
-                markiere_zeile(codezeile[i]);
-                MessageBox.Show((codezeile[i] + 1).ToString() + ": " + Parser.parsen(Befehl[i], ref NOP).ToString(""));
-            }
         }
 
 
@@ -358,7 +310,7 @@ namespace PIC_Simulator
         //Timer in dem das Programm abläuft
         private void timer1_Tick(object sender, EventArgs e)
         {
-            Programmablauf();
+            program.ausführen();
         }
 
         private void ResetButton_Click(object sender, EventArgs e)
@@ -443,51 +395,6 @@ namespace PIC_Simulator
             }
         }
 
-        public void Programmablauf()
-        {
-            interrupt.ausführen();
-            int zeilennummer = PC.get();
-            int anweisung = Parser.parsen(Befehl[zeilennummer], ref NOP);
-            Befehlsfunktionen[anweisung](zeilennummer);
-            try
-            {
-                if (breakpoint[PC.get()])
-                {
-                    Programm_start(false);
-                }
-            }
-            catch(Exception e)
-            {
-                MessageBox.Show(PC.get().ToString("X2"));
-            }
-            if(reset)
-            {
-                reset = false;
-                Programm_start(false);
-                Power_On_Reset();
-            }
-            if (stepout && (anweisung == tokens.retfie || anweisung == tokens.retlw || anweisung == tokens._return)) 
-            {
-                stepout = false;
-                Programm_start(false);
-            }
-            if(stepover&&temp_breakpoint==PC.get())
-            {
-                stepover = false;
-                Programm_start(false);
-                dataGridView_code[0, codezeile[temp_breakpoint]].Value = "";
-                temp_breakpoint = -1;
-            }
-            //nächste Zeile markieren
-            markiere_zeile(codezeile[PC.get()]);
-            //GUI updaten
-            update_SpecialFunctionRegister();
-            update_port_datagrids();
-            //Laufzeitzähler
-            laufzeitzähler.erhöhen(quarzfrequenz.get_time());
-            label_laufzeit.Text = laufzeitzähler.ToString();
-        }
-
         private void IgnoreButton_Click(object sender, EventArgs e)
         {
             //überspringt den nächsten Befehl(ändert nur den PC)
@@ -498,7 +405,7 @@ namespace PIC_Simulator
         private void StepInButton_Click(object sender, EventArgs e)
         {
             //führt den nächsten Befehl aus
-            Programmablauf();
+            program.ausführen();
         }
 
         private void StepOutButton_Click(object sender, EventArgs e)

@@ -74,6 +74,7 @@
     <Compile Include="Parser.cs" />
     <Compile Include="Pins.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Programmablauf.cs" />
     <Compile Include="Programmcounter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Quarzfrequenz.cs" />

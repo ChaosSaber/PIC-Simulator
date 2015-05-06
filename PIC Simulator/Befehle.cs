@@ -13,15 +13,17 @@ namespace PIC_Simulator
         Programmcounter PC;
         Stack TOS;
         Timer0 timer0;
+        Programmablauf program;
 
 
-        public Befehle(Form1 pic,Register speicher,Programmcounter pc,Stack tos,Timer0 timer0)
+        public Befehle(Programmablauf Program,Form1 pic,Register speicher,Programmcounter pc,Stack tos,Timer0 timer0)
         {
             PIC = pic;
             register = speicher;
             PC = pc;
             TOS = tos;
             this.timer0 = timer0;
+            program = Program;
         }
 
 
@@ -141,7 +143,7 @@ namespace PIC_Simulator
             Byte ergebnis = (Byte)(register.Speicher[adresse] - 1);
             register.speichern(adresse, d, ergebnis);
             if (ergebnis == 0)
-                PIC.NOP = true;//nächste Anweisung überspringen
+                program.NOP = true;//nächste Anweisung überspringen
             PC.erhöhen();
             timer0.Timermode();
         }
@@ -167,7 +169,7 @@ namespace PIC_Simulator
             Byte ergebnis = (Byte)(register.Speicher[adresse] + 1);
             register.speichern(adresse, d, ergebnis);
             if (ergebnis == 0)
-                PIC.NOP = true;//nächste Anweisung wird überspringen
+                program.NOP = true;//nächste Anweisung wird überspringen
             PC.erhöhen();
             timer0.Timermode();
         }
@@ -328,7 +330,7 @@ namespace PIC_Simulator
             int bitnummer = PIC.Befehl[codezeile] & 0x0380;
             bitnummer >>= 7;
             if (!register.bit_gesetzt(adresse, bitnummer))
-                PIC.NOP = true;//nächste Anweisung PIC.NOP
+                program.NOP = true;//nächste Anweisung PIC.NOP
             PC.erhöhen();
             timer0.Timermode();
         }
@@ -340,7 +342,7 @@ namespace PIC_Simulator
             int bitnummer = PIC.Befehl[codezeile] & 0x0380;
             bitnummer >>= 7;
             if (register.bit_gesetzt(adresse, bitnummer))
-                PIC.NOP = true;//nächste Anweisung PIC.NOP
+                program.NOP = true;//nächste Anweisung PIC.NOP
             PC.erhöhen();
             timer0.Timermode();
         }

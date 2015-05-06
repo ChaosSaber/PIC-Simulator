@@ -1733,11 +1733,11 @@ namespace PIC_Simulator
         private System.Windows.Forms.DataGridViewTextBoxColumn _0;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Label label_laufzeit;
         private System.Windows.Forms.ComboBox comboBox_quarzfrequenz;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.Label label_quarzfrquenz;
         private System.Windows.Forms.ToolStripMenuItem einstellungenToolStripMenuItem;
+        internal System.Windows.Forms.Label label_laufzeit;
     }
 }
 
