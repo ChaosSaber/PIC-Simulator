@@ -44,10 +44,6 @@ namespace PIC_Simulator
         public int[] Befehl;//enthält den Befehl(zweiter 4-stelliger Code) der Codezeile als int ;(Byte 5-8)
        
         public Boolean[] breakpoint;//Boolwert ob die Zeile einen Breakpoint enthält
-        Boolean reset = false;//wenn dieser Wert true ist wird das laufende Programm abgebrochen
-        Boolean stepout = false;//wenn dieser wert true ist wird das laufende Programm abgebrochen sobald es auf ein return trifft;
-        Boolean stepover = false;//bestimmt ob sich das Programm im stepovermodus befindet
-        int temp_breakpoint = -1;//temporärer Breakpoint für stepover
         String contextmenustrip_aufrufer = "";
         
         Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
@@ -316,7 +312,7 @@ namespace PIC_Simulator
         private void ResetButton_Click(object sender, EventArgs e)
         {
             //TODO welcher Reset?
-            reset = true;
+            program.set_modi(Programmablauf.reset);
             Power_On_Reset();
             Programm_start(false);
             markiere_zeile(codezeile[PC.get()]);
@@ -413,7 +409,7 @@ namespace PIC_Simulator
             //führt aus einem Unterprogramm heraus. Es werden die Befehle 
             //nach und nach abgeabreitet bis ein Rücksprungbefehl (RETLW, 
             //RETURN, RETFIE) auftaucht.
-            stepout = true;
+            program.set_modi(Programmablauf.stepout);
             Programm_start(true);
         }
 
@@ -423,8 +419,9 @@ namespace PIC_Simulator
             //So lassen sich die Unterprogramme schnell durchlaufen. Sobald der Breakpoint erreicht
             //wird, stoppt die Simulation. Sollte das Programm in eine Endlosschleife laufen, kann man die Simulation
             //durch Reset (F2) abbrechen.
-            stepover = true;
-            temp_breakpoint = PC.get() + 1;
+            program.set_modi(Programmablauf.stepover);
+            int temp_breakpoint = PC.get() + 1;
+            program.set_temp_breakpoint(temp_breakpoint);
             PC.set(0);
             markiere_zeile(codezeile[PC.get()]);
             dataGridView_code[0, codezeile[temp_breakpoint]].Value = "b";
