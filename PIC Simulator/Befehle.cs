@@ -357,7 +357,7 @@ namespace PIC_Simulator
                 register.Carry_setzen();
             else
                 register.Carry_löschen();
-            if ((literal & 0xF + register.w_register & 0xF) > 15)
+            if (((literal & 0xF) + (register.w_register & 0xF)) > 15)
                 register.Digitcarry_setzen();
             else
                 register.Digitcarry_löschen();
@@ -471,7 +471,7 @@ namespace PIC_Simulator
                 register.Carry_löschen();
             else
                 register.Carry_setzen();
-            if ((literal & 0xF - register.w_register & 0xF) <= 0)
+            if (((literal & 0xF) - (register.w_register & 0xF)) <= 0)
                 register.Digitcarry_setzen();
             else
                 register.Digitcarry_löschen();
