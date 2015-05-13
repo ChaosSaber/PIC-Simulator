@@ -19,22 +19,17 @@ namespace PIC_Simulator
 
         static BEFEHLSFUNKTIONEN[] Befehlsfunktionen = new BEFEHLSFUNKTIONEN[35];//Zeiger auf die Befehlsfunktionen
 
-        Form1 PIC;
-        Programmcounter PC;
-        Interrupt interrupt;
-        Laufzeitzähler laufzeitzähler;
-        Quarzfrequenz quarzfrequenz;
+        Controller controller;
         Befehle befehle;
+        
 
 
-        public Programmablauf(Form1 pic,Programmcounter pc,Interrupt interrupt,Laufzeitzähler laufzeitzähler,Quarzfrequenz quarzfrequenz,Register register,Stack TOS,Timer0 timer0)
+        public Programmablauf(Controller controller)
         {
-            PIC = pic;
-            PC = pc;
-            this.interrupt = interrupt;
-            this.laufzeitzähler = laufzeitzähler;
-            this.quarzfrequenz = quarzfrequenz;
-            befehle = new Befehle(this, pic, register, pc, TOS, timer0);
+            this.controller = controller;
+
+            befehle = new Befehle(controller);
+
 
             //Array der Befehlsfunktionen initialisieren
             Befehlsfunktionen[tokens.addwf] = befehle.addwf;
@@ -93,40 +88,40 @@ namespace PIC_Simulator
 
         public void ausführen()
         {
-            interrupt.ausführen();
-            int zeilennummer = PC.get();
-            int anweisung = Parser.parsen(PIC.Befehl[zeilennummer], ref NOP);
+            controller.interrupt.ausführen();
+            int zeilennummer = controller.PC.get();
+            int anweisung = Parser.parsen(controller.PIC.Befehl[zeilennummer], ref NOP);
             Befehlsfunktionen[anweisung](zeilennummer);
-            if (PIC.breakpoint[PC.get()])
+            if (controller.PIC.breakpoint[controller.PC.get()])
             {
-                PIC.Programm_start(false);
+                controller.PIC.Programm_start(false);
             }
             if (modi==reset)
             {
                 modi = normal;
-                PIC.Programm_start(false);
-                PIC.Power_On_Reset();
+                controller.PIC.Programm_start(false);
+                controller.PIC.Power_On_Reset();
             }
             if (modi==stepout && (anweisung == tokens.retfie || anweisung == tokens.retlw || anweisung == tokens._return))
             {
                 modi = normal;
-                PIC.Programm_start(false);
+                controller.PIC.Programm_start(false);
             }
-            if (modi==stepover && temp_breakpoint == PC.get())
+            if (modi==stepover && temp_breakpoint == controller.PC.get())
             {
                 modi = normal;
-                PIC.Programm_start(false);
-                PIC.dataGridView_code[0, PIC.codezeile[temp_breakpoint]].Value = "";
+                controller.PIC.Programm_start(false);
+                controller.PIC.dataGridView_code[0, controller.PIC.codezeile[temp_breakpoint]].Value = "";
                 temp_breakpoint = -1;
             }
             //nächste Zeile markieren
-            PIC.markiere_zeile(PIC.codezeile[PC.get()]);
+            controller.PIC.markiere_zeile(controller.PIC.codezeile[controller.PC.get()]);
             //GUI updaten
-            PIC.update_SpecialFunctionRegister();
-            PIC.update_port_datagrids();
+            controller.PIC.update_SpecialFunctionRegister();
+            controller.PIC.update_port_datagrids();
             //Laufzeitzähler
-            laufzeitzähler.erhöhen(quarzfrequenz.get_time());
-            PIC.label_laufzeit.Text = laufzeitzähler.ToString();
+            controller.laufzeitzähler.erhöhen(controller.quarzfrequenz.get_time());
+            controller.PIC.label_laufzeit.Text = controller.laufzeitzähler.ToString();
         }
     }
 }

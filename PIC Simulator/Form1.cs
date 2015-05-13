@@ -26,7 +26,7 @@ using System.IO;
 /*
  * TODO Fragen
  * fragen zum Steuerpult step out, step over,... (so schnell wie möglich)
- * Quarzfreguenz + laufzeitzähler
+ * Quarzfreguenz + controller.laufzeitzähler
  * Wie weit bezüglich input/output PortA/PortB (schreiben zu einem input schreibt in den Latch,sobald auf Input umgeschalten wird, wird der latch in den Port geladen)
  */
 
@@ -46,16 +46,9 @@ namespace PIC_Simulator
         public Boolean[] breakpoint;//Boolwert ob die Zeile einen Breakpoint enthält
         String contextmenustrip_aufrufer = "";
         
-        Stack TOS = new Stack(); //Top of Stack Liste; FiLo-Liste ; enthält 8 Werte
-        Laufzeitzähler laufzeitzähler = new Laufzeitzähler();
-        Quarzfrequenz quarzfrequenz = new Quarzfrequenz();
-        internal Register register;
-        internal Programmcounter PC;
-        internal Funktionsgenerator FG;
-        internal Interrupt interrupt;
         
-        internal Timer0 timer0;
-        internal Programmablauf program;
+
+        Controller controller;
 
         
 
@@ -122,9 +115,10 @@ namespace PIC_Simulator
                 MessageBox.Show("Datei konnte nicht geladen werden:\n"+f.Message);
             }
             extrahiere_codezeilen();
+            Code_anzeigen();
             Power_On_Reset();
             
-            Code_anzeigen();
+            
             Speicher_grid_befüllen();
             markiere_zeile(codezeile[0]);
             update_port_datagrids();
@@ -147,16 +141,19 @@ namespace PIC_Simulator
         public void Power_On_Reset()
         {
             //Manual Seite 27
-            register.Power_on_Reset();
+            controller.register.Power_on_Reset();
 
             //Variableninitiation
-            PC.PCH = 0;
-            interrupt.init();
-            program.init();
-            timer0.init();
+            controller.PC.PCH = 0;
+            controller.interrupt.init();
+            controller.program.init();
+            controller.timer0.init();
 
             for (int i = 0; i < breakpoint.Length; i++)
+            {
                 breakpoint[i] = false;
+                dataGridView_code[0, codezeile[i]].Value = "";
+            }
 
             update_SpecialFunctionRegister();
             update_port_datagrids();
@@ -167,8 +164,8 @@ namespace PIC_Simulator
             //manual Seite 27
             //during: normal Operation, sleep
             //WDT-Reset during normal operation
-            PC.set(0);
-            register.MCLR();
+            controller.PC.set(0);
+            controller.register.MCLR();
             //TODO wie beeinflusst das die Variablen?
 
             update_SpecialFunctionRegister();
@@ -178,10 +175,10 @@ namespace PIC_Simulator
         public void Wakeup_from_sleep()
         {
             //manual seite 27
-            //Through interrupt
+            //Through controller.interrupt
             //through WDT Time-out
-            PC.erhöhen();
-            register.Wakeup_from_Sleep();
+            controller.PC.erhöhen();
+            controller.register.Wakeup_from_Sleep();
             //TODO wie beeinflusst das die Variablen
 
             update_port_datagrids();
@@ -194,21 +191,21 @@ namespace PIC_Simulator
         //enthält sämtliche Interruptfunktionen und wird von einem Timer alle 50ms ausgeführt
         private void interrupttimer_Tick(object sender, EventArgs e)
         {
-            interrupt.Flags_setzen();
+            controller.interrupt.Flags_setzen();
         }
 
         //zeigt die Register in einem DataGridView an
         public void Speicher_grid_befüllen()
         {
             for (int i = 0; i < 256; i++)
-                dataGridView_Speicher[i % 8, i / 8].Value = register.Speicher[i].ToString("X2");
+                dataGridView_Speicher[i % 8, i / 8].Value = controller.register.Speicher[i].ToString("X2");
         }
 
         //aktuallisiert ein Speicherregister im DataGridView
         public void Speicher_grid_updaten(int adresse)
         {
             adresse %= 256;
-            dataGridView_Speicher[adresse % 8, adresse / 8].Value = register.Speicher[adresse].ToString("X2");
+            dataGridView_Speicher[adresse % 8, adresse / 8].Value = controller.register.Speicher[adresse].ToString("X2");
         }
 
         public void Code_anzeigen()
@@ -246,12 +243,8 @@ namespace PIC_Simulator
         
         private void Form1_Load(object sender, EventArgs e)
         {
-            register = new Register(this);
-            PC = new Programmcounter(this, register);
-            FG = new Funktionsgenerator(this, register);
-            interrupt = new Interrupt(this, register, TOS, PC);
-            timer0 = new Timer0(register, interrupt);
-            program = new Programmablauf(this, PC, interrupt, laufzeitzähler, quarzfrequenz, register, TOS, timer0);
+
+            controller = new Controller(this);
 
             int i = 0;
             foreach (string arg in Environment.GetCommandLineArgs())
@@ -279,11 +272,11 @@ namespace PIC_Simulator
             //Datagrid für PortA und PortB mit Werten belegen
             update_port_datagrids();
 
-            label_laufzeit.Text = laufzeitzähler.ToString();
-            label_quarzfrquenz.Text = quarzfrequenz.ToString_time();
+            label_laufzeit.Text = controller.laufzeitzähler.ToString();
+            label_quarzfrquenz.Text = controller.quarzfrequenz.ToString_time();
             //combobox für Quarzfrequenz mit Werten belegen
-            for (int k = 0; k < quarzfrequenz.get_frequenzcount(); k++)
-                comboBox_quarzfrequenz.Items.Add(quarzfrequenz.get_String_frequenz(k));
+            for (int k = 0; k < controller.quarzfrequenz.get_frequenzcount(); k++)
+                comboBox_quarzfrequenz.Items.Add(controller.quarzfrequenz.get_String_frequenz(k));
             comboBox_quarzfrequenz.SelectedIndex = 0;
         }
 
@@ -298,7 +291,7 @@ namespace PIC_Simulator
         //wird etwa alle 50ms ausgeführt
         private void timer0_counter_Tick(object sender, EventArgs e)
         {
-            timer0.ausführen();
+            controller.timer0.ausführen();
         }
 
 
@@ -306,16 +299,16 @@ namespace PIC_Simulator
         //Timer in dem das Programm abläuft
         private void timer1_Tick(object sender, EventArgs e)
         {
-            program.ausführen();
+            controller.program.ausführen();
         }
 
         private void ResetButton_Click(object sender, EventArgs e)
         {
             //TODO welcher Reset?
-            program.set_modi(Programmablauf.reset);
+            controller.program.set_modi(Programmablauf.reset);
             Power_On_Reset();
             Programm_start(false);
-            markiere_zeile(codezeile[PC.get()]);
+            markiere_zeile(codezeile[controller.PC.get()]);
         }
 
         private void StartStopButton_Click(object sender, EventArgs e)
@@ -393,15 +386,15 @@ namespace PIC_Simulator
 
         private void IgnoreButton_Click(object sender, EventArgs e)
         {
-            //überspringt den nächsten Befehl(ändert nur den PC)
-            PC.erhöhen();
-            markiere_zeile(codezeile[PC.get()]);
+            //überspringt den nächsten Befehl(ändert nur den controller.PC)
+            controller.PC.erhöhen();
+            markiere_zeile(codezeile[controller.PC.get()]);
         }
 
         private void StepInButton_Click(object sender, EventArgs e)
         {
             //führt den nächsten Befehl aus
-            program.ausführen();
+            controller.program.ausführen();
         }
 
         private void StepOutButton_Click(object sender, EventArgs e)
@@ -409,7 +402,7 @@ namespace PIC_Simulator
             //führt aus einem Unterprogramm heraus. Es werden die Befehle 
             //nach und nach abgeabreitet bis ein Rücksprungbefehl (RETLW, 
             //RETURN, RETFIE) auftaucht.
-            program.set_modi(Programmablauf.stepout);
+            controller.program.set_modi(Programmablauf.stepout);
             Programm_start(true);
         }
 
@@ -419,40 +412,40 @@ namespace PIC_Simulator
             //So lassen sich die Unterprogramme schnell durchlaufen. Sobald der Breakpoint erreicht
             //wird, stoppt die Simulation. Sollte das Programm in eine Endlosschleife laufen, kann man die Simulation
             //durch Reset (F2) abbrechen.
-            program.set_modi(Programmablauf.stepover);
-            int temp_breakpoint = PC.get() + 1;
-            program.set_temp_breakpoint(temp_breakpoint);
-            PC.set(0);
-            markiere_zeile(codezeile[PC.get()]);
+            controller.program.set_modi(Programmablauf.stepover);
+            int temp_breakpoint = controller.PC.get() + 1;
+            controller.program.set_temp_breakpoint(temp_breakpoint);
+            controller.PC.set(0);
+            markiere_zeile(codezeile[controller.PC.get()]);
             dataGridView_code[0, codezeile[temp_breakpoint]].Value = "b";
             Programm_start(true);
         }
 
         public void update_SpecialFunctionRegister()
         {
-            label_w_register.Text = register.w_register.ToString("X2");
-            label_fsr.Text = register.Speicher[Register.fsr].ToString("X2");
-            label_pcl.Text = register.Speicher[Register.pcl].ToString("X2");
-            label_pclath.Text = register.Speicher[Register.pclath].ToString("X2");
-            label_pc.Text = PC.get().ToString("X4");
-            label_status.Text = register.Speicher[Register.status].ToString("X2");
-            label_option.Text = register.Speicher[Register.option_reg].ToString("X2");
-            label_intcon.Text = register.Speicher[Register.intcon].ToString("X2");
+            label_w_register.Text = controller.register.w_register.ToString("X2");
+            label_fsr.Text = controller.register.Speicher[Register.fsr].ToString("X2");
+            label_pcl.Text = controller.register.Speicher[Register.pcl].ToString("X2");
+            label_pclath.Text = controller.register.Speicher[Register.pclath].ToString("X2");
+            label_pc.Text = controller.PC.get().ToString("X4");
+            label_status.Text = controller.register.Speicher[Register.status].ToString("X2");
+            label_option.Text = controller.register.Speicher[Register.option_reg].ToString("X2");
+            label_intcon.Text = controller.register.Speicher[Register.intcon].ToString("X2");
             //status, option, intcon datagrids mit Werten belegen
             for (int i = 0; i < 8; i++)
             {
                 //status
-                if (register.bit_gesetzt(Register.status, 7 - i))
+                if (controller.register.bit_gesetzt(Register.status, 7 - i))
                     dataGridView_status[i, 0].Value = "1";
                 else
                     dataGridView_status[i, 0].Value = "0";
                 //option
-                if (register.bit_gesetzt(Register.option_reg, 7 - i))
+                if (controller.register.bit_gesetzt(Register.option_reg, 7 - i))
                     dataGridView_option[i, 0].Value = "1";
                 else
                     dataGridView_option[i, 0].Value = "0";
                 //intcon
-                if (register.bit_gesetzt(Register.intcon, 7 - i))
+                if (controller.register.bit_gesetzt(Register.intcon, 7 - i))
                     dataGridView_intcon[i, 0].Value = "1";
                 else
                     dataGridView_intcon[i, 0].Value = "0";
@@ -466,12 +459,12 @@ namespace PIC_Simulator
             for (int i = 0; i < 5; i++)
             {
                 //datagrid portA
-                if (register.bit_gesetzt(Register.porta, 5 - i))
+                if (controller.register.bit_gesetzt(Register.porta, 5 - i))
                     dataGridView_PortA[i, 1].Value = "1";
                 else
                     dataGridView_PortA[i, 1].Value = "0";
                 //datagrid TrisA
-                if (register.bit_gesetzt(Register.trisa, 5 - i))
+                if (controller.register.bit_gesetzt(Register.trisa, 5 - i))
                     dataGridView_PortA[i, 0].Value = "i";
                 else
                     dataGridView_PortA[i, 0].Value = "o";
@@ -479,12 +472,12 @@ namespace PIC_Simulator
             for (int i = 0; i < 8; i++)
             {
                 //datagrid PortB
-                if (register.bit_gesetzt(Register.portb, 7 - i))
+                if (controller.register.bit_gesetzt(Register.portb, 7 - i))
                     dataGridView_PortB[i, 1].Value = "1";
                 else
                     dataGridView_PortB[i, 1].Value = "0";
                 //datagrid TrisB
-                if (register.bit_gesetzt(Register.trisb, 7 - i))
+                if (controller.register.bit_gesetzt(Register.trisb, 7 - i))
                     dataGridView_PortB[i, 0].Value = "i";
                 else
                     dataGridView_PortB[i, 0].Value = "o";
@@ -502,12 +495,12 @@ namespace PIC_Simulator
             if (dataGridView_status[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_status[e.ColumnIndex, 0].Value = "0";
-                register.bit_löschen(Register.status, 7 - e.ColumnIndex);
+                controller.register.bit_löschen(Register.status, 7 - e.ColumnIndex);
             }
             else
             {
                 dataGridView_status[e.ColumnIndex, 0].Value = "1";
-                register.bit_setzen(Register.status, 7 - e.ColumnIndex);
+                controller.register.bit_setzen(Register.status, 7 - e.ColumnIndex);
             }
             update_SpecialFunctionRegister();
         }
@@ -517,12 +510,12 @@ namespace PIC_Simulator
             if (dataGridView_option[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_option[e.ColumnIndex, 0].Value = "0";
-                register.bit_löschen(Register.option_reg, 7 - e.ColumnIndex);
+                controller.register.bit_löschen(Register.option_reg, 7 - e.ColumnIndex);
             }
             else
             {
                 dataGridView_option[e.ColumnIndex, 0].Value = "1";
-                register.bit_setzen(Register.option_reg, 7 - e.ColumnIndex);
+                controller.register.bit_setzen(Register.option_reg, 7 - e.ColumnIndex);
             }
             update_SpecialFunctionRegister();
         }
@@ -532,12 +525,12 @@ namespace PIC_Simulator
             if (dataGridView_intcon[e.ColumnIndex, 0].Value.ToString() == "1")
             {
                 dataGridView_intcon[e.ColumnIndex, 0].Value = "0";
-                register.bit_löschen(Register.intcon, 7 - e.ColumnIndex);
+                controller.register.bit_löschen(Register.intcon, 7 - e.ColumnIndex);
             }
             else
             {
                 dataGridView_intcon[e.ColumnIndex, 0].Value = "1";
-                register.bit_setzen(Register.intcon, 7 - e.ColumnIndex);
+                controller.register.bit_setzen(Register.intcon, 7 - e.ColumnIndex);
             }
             update_SpecialFunctionRegister();
         }
@@ -550,7 +543,7 @@ namespace PIC_Simulator
             if (result == DialogResult.OK)
             {
                 int temp = Convert.ToInt32(input, 16);
-                register.Speicher[Registerspeicher] = (Byte)temp;
+                controller.register.Speicher[Registerspeicher] = (Byte)temp;
                 Speicher_grid_updaten(Registerspeicher);
             }
         }
@@ -570,7 +563,7 @@ namespace PIC_Simulator
             System.Windows.Forms.Label label = new Label();
             label.Location = new System.Drawing.Point(2, 5);
             label.Visible = true;
-            label.Text = "    Bitte geben sie den Wert als\n     Hexwert ein, den sie in das\nRegister " + register.ToString("X2") + "H register.speichern möchten";
+            label.Text = "    Bitte geben sie den Wert als\n     Hexwert ein, den sie in das\nRegister " + register.ToString("X2") + "H controller.register.speichern möchten";
             label.Size = new Size(label.PreferredWidth, label.PreferredHeight);
             inputBox.Controls.Add(label);
 
@@ -608,10 +601,10 @@ namespace PIC_Simulator
         {
             if (e.RowIndex == 0)//Zeile für TRIS-Register
                 return;
-            if (register.bit_gesetzt(Register.porta, 5 - e.ColumnIndex))
-                register.bit_löschen(Register.porta, 5 - e.ColumnIndex);
+            if (controller.register.bit_gesetzt(Register.porta, 5 - e.ColumnIndex))
+                controller.register.bit_löschen(Register.porta, 5 - e.ColumnIndex);
             else
-                register.bit_setzen(Register.porta, 5 - e.ColumnIndex);
+                controller.register.bit_setzen(Register.porta, 5 - e.ColumnIndex);
             update_port_datagrids();
         }
 
@@ -619,10 +612,10 @@ namespace PIC_Simulator
         {
             if (e.RowIndex == 0)//Zeile für TRIS-Register
                 return;
-            if (register.bit_gesetzt(Register.portb, 7 - e.ColumnIndex))
-                register.bit_löschen(Register.portb, 7 - e.ColumnIndex);
+            if (controller.register.bit_gesetzt(Register.portb, 7 - e.ColumnIndex))
+                controller.register.bit_löschen(Register.portb, 7 - e.ColumnIndex);
             else
-                register.bit_setzen(Register.portb, 7 - e.ColumnIndex);
+                controller.register.bit_setzen(Register.portb, 7 - e.ColumnIndex);
             update_port_datagrids();
         }
 
@@ -817,25 +810,25 @@ namespace PIC_Simulator
         {
             if(contextmenustrip_aufrufer=="textBox_FG_pin")
             {
-                FG.set_Pin(pin);
+                controller.FG.set_Pin(pin);
                 textBox_FG_pin.Text = Pins.ToString(pin);
             }
         }
 
         private void timer_Funktionsgenerator_Tick(object sender, EventArgs e)
         {
-            FG.change_pin();
+            controller.FG.change_pin();
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            laufzeitzähler.Reset();
+            controller.laufzeitzähler.Reset();
         }
 
         private void comboBox_quarzfrequenz_SelectedIndexChanged(object sender, EventArgs e)
         {
-            quarzfrequenz.set(comboBox_quarzfrequenz.SelectedIndex);
-            label_quarzfrquenz.Text = quarzfrequenz.ToString_time();
+            controller.quarzfrequenz.set(comboBox_quarzfrequenz.SelectedIndex);
+            label_quarzfrquenz.Text = controller.quarzfrequenz.ToString_time();
         } 
     }
 }

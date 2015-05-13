@@ -10,25 +10,23 @@ namespace PIC_Simulator
     {
         private int Pin = Pins.nc;
         private int verhältnis = 1;//noch nicht implementiert
-        Register register;
-        Form1 PIC;
+        Controller controller;
 
-        public Funktionsgenerator(Form1 pic,Register speicher)
+        public Funktionsgenerator(Controller controller)
         {
-            PIC = pic;
-            register = speicher;
+            this.controller = controller;
         }
 
         public void change_pin()
         {
             if (Pin > 2)
             {
-                if (register.bit_gesetzt(Pin / 10, Pin % 10))
-                    register.bit_löschen(Pin / 10, Pin % 10);
+                if (controller.register.bit_gesetzt(Pin / 10, Pin % 10))
+                    controller.register.bit_löschen(Pin / 10, Pin % 10);
                 else
-                    register.bit_setzen(Pin / 10, Pin % 10);
-                PIC.update_port_datagrids();
-                PIC.Speicher_grid_updaten(Pin / 10);
+                    controller.register.bit_setzen(Pin / 10, Pin % 10);
+                controller.PIC.update_port_datagrids();
+                controller.PIC.Speicher_grid_updaten(Pin / 10);
             }
         }
 

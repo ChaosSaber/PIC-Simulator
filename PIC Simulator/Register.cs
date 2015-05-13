@@ -31,11 +31,11 @@ namespace PIC_Simulator
         public Byte[] Speicher = new Byte[256];//Registerspeicher
         public Byte w_register;
 
-        Form1 PIC;
+        Controller controller;
 
-        public Register(Form1 pic)
+        public Register(Controller controller)
         {
-            PIC = pic;
+            this.controller = controller;
         }
 
 
@@ -143,20 +143,20 @@ namespace PIC_Simulator
             if (adresse > 0xB && adresse < 0x50 || adresse >= 2 && adresse <= 4 || adresse == 0xA || adresse == 0xB)
             {
                 Speicher[adresse + 0x80] = Speicher[adresse];
-                PIC.Speicher_grid_updaten(adresse + 0x80);
+                controller.PIC.Speicher_grid_updaten(adresse + 0x80);
                 return;
             }
             if (adresse > 0x8B && adresse < 0xD0 || adresse >= 0x82 && adresse <= 0x84 || adresse == 0x8A || adresse == 0x8B)
             {
                 Speicher[adresse - 0x80] = Speicher[adresse];
-                PIC.Speicher_grid_updaten(adresse - 0x80);
+                controller.PIC.Speicher_grid_updaten(adresse - 0x80);
             }
         }
         public void pcl_geändert(int adresse)
         {
             //Wenn dass PCL-Register das Ziel eines Schreibbefehls ist wird das PCLATH-Register ins PCH geladen
             if (adresse % 0x80 == Register.pcl)
-                PIC.PC.PCH = Speicher[Register.pcl];
+                controller.PC.PCH = Speicher[Register.pcl];
         }
         public void speichern(int adresse, int d, Byte ergebnis)
         {
@@ -165,8 +165,8 @@ namespace PIC_Simulator
             {
                 Speicher[adresse] = ergebnis;
                 pcl_geändert(adresse);
-                PIC.timer0.geändert(adresse);
-                PIC.Speicher_grid_updaten(adresse);
+                controller.timer0.geändert(adresse);
+                controller.PIC.Speicher_grid_updaten(adresse);
                 Speicher_mapping(adresse);
             }
             else
@@ -177,16 +177,16 @@ namespace PIC_Simulator
             Speicher[register] = (Byte)(Speicher[register] | (1 << Bit));
             Speicher_mapping(register);
             pcl_geändert(register);
-            PIC.timer0.geändert(register);
-            PIC.Speicher_grid_updaten(register);
+            controller.timer0.geändert(register);
+            controller.PIC.Speicher_grid_updaten(register);
         }
         public void bit_löschen(int register, int Bit)
         {
             Speicher[register] = (Byte)(Speicher[register] & ~(1 << Bit));
             Speicher_mapping(register);
             pcl_geändert(register);
-            PIC.timer0.geändert(register);
-            PIC.Speicher_grid_updaten(register);
+            controller.timer0.geändert(register);
+            controller.PIC.Speicher_grid_updaten(register);
         }
         public Boolean bit_gesetzt(int register, int Bit)
         {
