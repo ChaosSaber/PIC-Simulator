@@ -155,6 +155,7 @@ namespace PIC_Simulator
                 dataGridView_code[0, codezeile[i]].Value = "";
             }
 
+            Speicher_grid_befüllen();
             update_SpecialFunctionRegister();
             update_port_datagrids();
         }
