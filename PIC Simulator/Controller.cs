@@ -16,13 +16,14 @@ namespace PIC_Simulator
         public Timer0 timer0;
         public Programmablauf program;
 
-        public Stack TOS = new Stack();
+        public Stack TOS;
         public Laufzeitzähler laufzeitzähler = new Laufzeitzähler();
         public Quarzfrequenz quarzfrequenz = new Quarzfrequenz();
 
         public Controller(Form1 pic)
         {
             PIC = pic;
+            TOS = new Stack(this);
             register = new Register(this);
             PC = new Programmcounter(this);
             FG = new Funktionsgenerator(this);

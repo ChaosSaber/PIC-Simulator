@@ -285,6 +285,7 @@ namespace PIC_Simulator
 
         private void button1_Click(object sender, EventArgs e)//testfunktion
         {
+            MessageBox.Show((-1 & 0x7).ToString());
         }
 
 
@@ -830,6 +831,7 @@ namespace PIC_Simulator
         {
             controller.quarzfrequenz.set(comboBox_quarzfrequenz.SelectedIndex);
             label_quarzfrquenz.Text = controller.quarzfrequenz.ToString_time();
-        } 
+        }
+
     }
 }

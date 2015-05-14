@@ -250,12 +250,12 @@ namespace PIC_Simulator
             int d = controller.PIC.Befehl[codezeile] & 0x0080;
             int temp = controller.register.Speicher[adresse] - controller.register.w_register;
             if ((adresse % 0x80 != Register.status) || d == 0) 
-            {
-                if (temp <= 0)//wenn das Ergebnis<0 dann lösche das Carrybit, ansonsten setze es
+            {//Addition durch 2-er Komplement 255-HH+1->256-HH.....15-H+1->16-H
+                if ((controller.register.Speicher[adresse] - controller.register.w_register +256) > 255)//Überlauf wenn größer 255
                     controller.register.Carry_setzen();
                 else
                     controller.register.Carry_löschen();
-                if (((controller.register.Speicher[adresse] & 0xF) - (controller.register.w_register & 0xF)) <= 0)
+                if (((controller.register.Speicher[adresse] & 0xF) - (controller.register.w_register & 0xF) + 16) <= 0)//Überlauf wenn größer 15
                     controller.register.Digitcarry_setzen();
                 else
                     controller.register.Digitcarry_löschen();
@@ -457,11 +457,12 @@ namespace PIC_Simulator
         {
             int literal = controller.PIC.Befehl[codezeile] & 0x00FF;
             int temp = literal - controller.register.w_register;
-            if (temp <= 0)//wenn das Ergebnis<=0 dann lösche das Carrybit, ansonsten setze es
+            //Addition durch 2-er Komplement 255-HH+1->256-HH.....15-H+1->16-H
+            if ((literal - controller.register.w_register + 256) > 255)//Überlauf wenn größer 255
                 controller.register.Carry_löschen();
             else
                 controller.register.Carry_setzen();
-            if (((literal & 0xF) - (controller.register.w_register & 0xF)) <= 0)
+            if (((literal & 0xF) - (controller.register.w_register & 0xF) + 16) <= 0)//Überlauf wenn größer 15
                 controller.register.Digitcarry_setzen();
             else
                 controller.register.Digitcarry_löschen();
