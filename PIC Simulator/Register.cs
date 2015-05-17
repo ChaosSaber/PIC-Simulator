@@ -30,12 +30,15 @@ namespace PIC_Simulator
 
         public Byte[] Speicher = new Byte[256];//Registerspeicher
         public Byte w_register;
+        private Byte LatchA;
+        private Byte LatchB;
 
         Controller controller;
 
         public Register(Controller controller)
         {
             this.controller = controller;
+            Power_on_Reset();
         }
 
 
@@ -60,6 +63,9 @@ namespace PIC_Simulator
             Speicher[0x89] = 0;
             Speicher[0x8A] = 0;
             Speicher[0x8B] = 0;
+
+            LatchA=0;
+            LatchB = 0;
         }
 
         public void MCLR()

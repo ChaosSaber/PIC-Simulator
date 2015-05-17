@@ -14,10 +14,7 @@ using System.IO;
  * TODO
  * WDT (Z)
  * WDT prescaler (Z)
- * irgendwas mit TRISA und TRISB
  * EEPROM Funktionen (Z)
- * RB-Interrupt nur bei Input Pins.
- * Funktionsgenerator
  * timer mit microsecondtimers austauschen: http://www.codeproject.com/Articles/98346/Microsecond-and-Millisecond-NET-Timer
  * 
  */
@@ -25,8 +22,6 @@ using System.IO;
 
 /*
  * TODO Fragen
- * fragen zum Steuerpult step out, step over,... (so schnell wie möglich)
- * Quarzfreguenz + controller.laufzeitzähler
  * Wie weit bezüglich input/output PortA/PortB (schreiben zu einem input schreibt in den Latch,sobald auf Input umgeschalten wird, wird der latch in den Port geladen)
  */
 
