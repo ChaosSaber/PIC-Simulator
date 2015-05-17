@@ -71,13 +71,14 @@ namespace PIC_Simulator
                 //Prescaler PS2:PS0(Bit0-2 vom Optionsregister)
                 //prescale value von 1:2,1:4,...,1:256
                 //000==1:2;001==1:4.......
-                if (Math.Pow(2, (controller.register.Speicher[Register.option_reg] & 0x07) + 1) >= prescaler)
+                if (prescaler >= Math.Pow(2, (controller.register.Speicher[Register.option_reg] & 0x07) + 1)) 
                 {
                     controller.register.Speicher[Register.tmr0]++;
                     controller.interrupt.t0if_setzen();
                     prescaler = 0;
                 }
             }
+            controller.PIC.update_Speicher_grid(Register.tmr0);
         }
         public void Timermode()
         {

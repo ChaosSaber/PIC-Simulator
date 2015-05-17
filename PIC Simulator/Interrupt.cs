@@ -80,9 +80,9 @@ namespace PIC_Simulator
         private void rbif_setzen()
         {//RB Port Change
             //At least one of the RB7:RB4 pins changed state (must be cleared in software)
-            if (RB_alt != (controller.register.Speicher[Register.portb] & 0xF0))
+            if (RB_alt != (controller.register.Speicher[Register.portb] & 0xF0 & controller.register.Speicher[Register.trisb]))
                 controller.register.bit_setzen(Register.intcon, Bits.rbif);
-            RB_alt = (Byte)(controller.register.Speicher[Register.portb] & 0xF0);
+            RB_alt = (Byte)(controller.register.Speicher[Register.portb] & 0xF0 & controller.register.Speicher[Register.trisb]);
         }
         private Boolean timer0_interrupt()
         {

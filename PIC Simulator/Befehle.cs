@@ -393,6 +393,8 @@ namespace PIC_Simulator
             int adresse = controller.PIC.Befehl[codezeile] & 0x07FF; //Zielsprungadresse !!!!! KEINE Adressänderung !!!!!
             controller.PC.set(adresse);//literal -> controller.PC<10:0>
             controller.PC.PCH |= (Byte)(controller.register.Speicher[Register.pclath] & 0x18);//PCLATH<4:3> -> controller.PC<12:11>
+            //two-cycle Instruction
+            controller.timer0.Timermode();
             controller.timer0.Timermode();
         }
 

@@ -203,7 +203,7 @@ namespace PIC_Simulator
         }
 
         //aktuallisiert ein Speicherregister im DataGridView
-        public void Speicher_grid_updaten(int adresse)
+        public void update_Speicher_grid(int adresse)
         {
             adresse %= 256;
             dataGridView_Speicher[adresse % 8, adresse / 8].Value = controller.register.Speicher[adresse].ToString("X2");
@@ -405,6 +405,8 @@ namespace PIC_Simulator
             //nach und nach abgeabreitet bis ein Rücksprungbefehl (RETLW, 
             //RETURN, RETFIE) auftaucht.
             controller.program.set_modi(Programmablauf.stepout);
+            controller.program.intervallzeit = programmtimer.Interval;
+            programmtimer.Interval = 1;
             Programm_start(true);
         }
 
@@ -420,6 +422,8 @@ namespace PIC_Simulator
             controller.PC.set(0);
             markiere_zeile(codezeile[controller.PC.get()]);
             dataGridView_code[0, codezeile[temp_breakpoint]].Value = "b";
+            controller.program.intervallzeit = programmtimer.Interval;
+            programmtimer.Interval = 1;
             Programm_start(true);
         }
 
@@ -461,12 +465,12 @@ namespace PIC_Simulator
             for (int i = 0; i < 5; i++)
             {
                 //datagrid portA
-                if (controller.register.bit_gesetzt(Register.porta, 5 - i))
+                if (controller.register.bit_gesetzt(Register.porta, 4 - i))
                     dataGridView_PortA[i, 1].Value = "1";
                 else
                     dataGridView_PortA[i, 1].Value = "0";
                 //datagrid TrisA
-                if (controller.register.bit_gesetzt(Register.trisa, 5 - i))
+                if (controller.register.bit_gesetzt(Register.trisa, 4 - i))
                     dataGridView_PortA[i, 0].Value = "i";
                 else
                     dataGridView_PortA[i, 0].Value = "o";
@@ -546,7 +550,7 @@ namespace PIC_Simulator
             {
                 int temp = Convert.ToInt32(input, 16);
                 controller.register.Speicher[Registerspeicher] = (Byte)temp;
-                Speicher_grid_updaten(Registerspeicher);
+                update_Speicher_grid(Registerspeicher);
             }
         }
 
@@ -603,10 +607,10 @@ namespace PIC_Simulator
         {
             if (e.RowIndex == 0)//Zeile für TRIS-Register
                 return;
-            if (controller.register.bit_gesetzt(Register.porta, 5 - e.ColumnIndex))
-                controller.register.bit_löschen(Register.porta, 5 - e.ColumnIndex);
+            if (controller.register.bit_gesetzt(Register.porta, 4 - e.ColumnIndex))
+                controller.register.bit_löschen(Register.porta, 4 - e.ColumnIndex);
             else
-                controller.register.bit_setzen(Register.porta, 5 - e.ColumnIndex);
+                controller.register.bit_setzen(Register.porta, 4 - e.ColumnIndex);
             update_port_datagrids();
         }
 
@@ -623,7 +627,8 @@ namespace PIC_Simulator
 
         private void groupBox_funktionsgenerator_Enter(object sender, EventArgs e)
         {
-            Show_Funktionsgenerator();
+            //TODO
+            //Show_Funktionsgenerator();
         }
         private static DialogResult Show_Funktionsgenerator()
         {
@@ -833,5 +838,65 @@ namespace PIC_Simulator
             label_quarzfrquenz.Text = controller.quarzfrequenz.ToString_time();
         }
 
+        private void simulationsgeschwindigkeitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int frequenz = 1000 / programmtimer.Interval;
+            DialogResult result = Simulationsgeschwindigkeit_ändern(ref frequenz);
+            if (result == DialogResult.OK) 
+            {
+                programmtimer.Interval = 1000 / frequenz;
+            }
+
+        }
+
+        private static DialogResult Simulationsgeschwindigkeit_ändern(ref int frequenz)
+        {
+            System.Drawing.Size size = new System.Drawing.Size(165, 150);
+            Form inputBox = new Form();
+
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+            inputBox.Text = "Registerspeicher ändern";
+            inputBox.ControlBox = false;
+
+            System.Windows.Forms.Label label = new Label();
+            label.Location = new System.Drawing.Point(2, 5);
+            label.Visible = true;
+            label.Text = "Verstellen sie den Schieberegler \nzwischen 1 Hz(ganz links) \nund 1000 Hz(ganz rechts) ein.";
+            label.Size = new Size(label.PreferredWidth, label.PreferredHeight);
+            inputBox.Controls.Add(label);
+
+            System.Windows.Forms.TrackBar trackbar = new TrackBar();
+            trackbar.Minimum = 1;
+            trackbar.Maximum = 1000;
+            trackbar.TickFrequency = 1;
+            trackbar.Value = frequenz;
+            trackbar.Size = new System.Drawing.Size(size.Width - 12, trackbar.PreferredSize.Height);
+            trackbar.Location = new System.Drawing.Point(6, 50);
+            inputBox.Controls.Add(trackbar);
+
+            Button okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 94);
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Cancel";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 94);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog();
+            frequenz = trackbar.Value;
+            return result;
+        }
     }
 }

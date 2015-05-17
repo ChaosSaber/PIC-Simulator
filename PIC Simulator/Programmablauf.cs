@@ -21,6 +21,8 @@ namespace PIC_Simulator
 
         Controller controller;
         Befehle befehle;
+
+        public int intervallzeit;//wird gesetzt wenn ein anderer Modi als normal genutz wird um die Simulationsfrequenz zwischenzuspeichern
         
 
 
@@ -92,7 +94,7 @@ namespace PIC_Simulator
             int zeilennummer = controller.PC.get();
             int anweisung = Parser.parsen(controller.PIC.Befehl[zeilennummer], ref NOP);
             Befehlsfunktionen[anweisung](zeilennummer);
-            if (controller.PIC.breakpoint[controller.PC.get()])
+            if (modi == normal && controller.PIC.breakpoint[controller.PC.get()]) 
             {
                 controller.PIC.Programm_start(false);
             }
@@ -106,6 +108,7 @@ namespace PIC_Simulator
             {
                 modi = normal;
                 controller.PIC.Programm_start(false);
+                controller.PIC.programmtimer.Interval = intervallzeit;
             }
             if (modi==stepover && temp_breakpoint == controller.PC.get())
             {
@@ -113,6 +116,7 @@ namespace PIC_Simulator
                 controller.PIC.Programm_start(false);
                 controller.PIC.dataGridView_code[0, controller.PIC.codezeile[temp_breakpoint]].Value = "";
                 temp_breakpoint = -1;
+                controller.PIC.programmtimer.Interval = intervallzeit;
             }
             //nächste Zeile markieren
             controller.PIC.markiere_zeile(controller.PIC.codezeile[controller.PC.get()]);

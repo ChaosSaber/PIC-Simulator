@@ -21,8 +21,8 @@ namespace PIC_Simulator
             controller.register.Speicher[Register.pcl + 0x80] = (Byte)(Wert & 0xFF);
             controller.register.Speicher[Register.pcl] = (Byte)(Wert & 0xFF);
             PCH = (Byte)((Wert & 0x1F00) >> 8);
-            controller.PIC.Speicher_grid_updaten(Register.pcl);
-            controller.PIC.Speicher_grid_updaten(Register.pcl + 0x80);
+            controller.PIC.update_Speicher_grid(Register.pcl);
+            controller.PIC.update_Speicher_grid(Register.pcl + 0x80);
         }
         public int get()
         {
@@ -33,8 +33,8 @@ namespace PIC_Simulator
             if ((controller.register.Speicher[Register.pcl + 0x80] += 1) == 0)
                 PCH++;
             controller.register.Speicher[Register.pcl] += 1;
-            controller.PIC.Speicher_grid_updaten(Register.pcl);
-            controller.PIC.Speicher_grid_updaten(Register.pcl + 0x80);
+            controller.PIC.update_Speicher_grid(Register.pcl);
+            controller.PIC.update_Speicher_grid(Register.pcl + 0x80);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace PIC_Simulator
                 else
                     controller.register.bit_setzen(Pin / 10, Pin % 10);
                 controller.PIC.update_port_datagrids();
-                controller.PIC.Speicher_grid_updaten(Pin / 10);
+                controller.PIC.update_Speicher_grid(Pin / 10);
             }
         }
 

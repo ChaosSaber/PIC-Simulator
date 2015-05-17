@@ -143,13 +143,13 @@ namespace PIC_Simulator
             if (adresse > 0xB && adresse < 0x50 || adresse >= 2 && adresse <= 4 || adresse == 0xA || adresse == 0xB)
             {
                 Speicher[adresse + 0x80] = Speicher[adresse];
-                controller.PIC.Speicher_grid_updaten(adresse + 0x80);
+                controller.PIC.update_Speicher_grid(adresse + 0x80);
                 return;
             }
             if (adresse > 0x8B && adresse < 0xD0 || adresse >= 0x82 && adresse <= 0x84 || adresse == 0x8A || adresse == 0x8B)
             {
                 Speicher[adresse - 0x80] = Speicher[adresse];
-                controller.PIC.Speicher_grid_updaten(adresse - 0x80);
+                controller.PIC.update_Speicher_grid(adresse - 0x80);
             }
         }
         public void pcl_geändert(int adresse)
@@ -166,7 +166,7 @@ namespace PIC_Simulator
                 Speicher[adresse] = ergebnis;
                 pcl_geändert(adresse);
                 controller.timer0.geändert(adresse);
-                controller.PIC.Speicher_grid_updaten(adresse);
+                controller.PIC.update_Speicher_grid(adresse);
                 Speicher_mapping(adresse);
             }
             else
@@ -178,7 +178,7 @@ namespace PIC_Simulator
             Speicher_mapping(register);
             pcl_geändert(register);
             controller.timer0.geändert(register);
-            controller.PIC.Speicher_grid_updaten(register);
+            controller.PIC.update_Speicher_grid(register);
         }
         public void bit_löschen(int register, int Bit)
         {
@@ -186,7 +186,7 @@ namespace PIC_Simulator
             Speicher_mapping(register);
             pcl_geändert(register);
             controller.timer0.geändert(register);
-            controller.PIC.Speicher_grid_updaten(register);
+            controller.PIC.update_Speicher_grid(register);
         }
         public Boolean bit_gesetzt(int register, int Bit)
         {
