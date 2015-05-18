@@ -278,10 +278,7 @@ namespace PIC_Simulator
 
         
 
-        private void button1_Click(object sender, EventArgs e)//testfunktion
-        {
-            MessageBox.Show((-1 & 0x7).ToString());
-        }
+       
 
 
         //timer der den Timer0 Clock mode steuert
