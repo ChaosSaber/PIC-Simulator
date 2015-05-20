@@ -5,8 +5,6 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PIC Simulator", "PIC Simulator\PIC Simulator.csproj", "{79F9490C-4A66-41C3-ACBE-DDFFEE89250A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Funktionsgenerator", "Funktionsgenerator\Funktionsgenerator.csproj", "{B8EBA732-E9FC-4EB5-987E-A53397A8960E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,16 +25,6 @@ Global
 		{79F9490C-4A66-41C3-ACBE-DDFFEE89250A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{79F9490C-4A66-41C3-ACBE-DDFFEE89250A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{79F9490C-4A66-41C3-ACBE-DDFFEE89250A}.Release|Win32.ActiveCfg = Release|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{B8EBA732-E9FC-4EB5-987E-A53397A8960E}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

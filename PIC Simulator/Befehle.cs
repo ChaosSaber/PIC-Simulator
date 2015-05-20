@@ -255,7 +255,7 @@ namespace PIC_Simulator
                     controller.register.Carry_setzen();
                 else
                     controller.register.Carry_löschen();
-                if (((controller.register.Speicher[adresse] & 0xF) - (controller.register.w_register & 0xF) + 16) <= 0)//Überlauf wenn größer 15
+                if (((controller.register.Speicher[adresse] & 0xF) + ((256 - controller.register.w_register) & 0xF)) > 15)//Überlauf wenn größer 15
                     controller.register.Digitcarry_setzen();
                 else
                     controller.register.Digitcarry_löschen();
@@ -464,7 +464,7 @@ namespace PIC_Simulator
                 controller.register.Carry_löschen();
             else
                 controller.register.Carry_setzen();
-            if (((literal & 0xF) - (controller.register.w_register & 0xF) + 16) <= 0)//Überlauf wenn größer 15
+            if (((literal & 0xF) + ((256 - controller.register.w_register) & 0xF)) > 15)//Überlauf wenn größer 15
                 controller.register.Digitcarry_setzen();
             else
                 controller.register.Digitcarry_löschen();
