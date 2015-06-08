@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PIC_Simulator
 {
-    class Bits
+    static class Bits
     {
         //Statusbits
         public const int irp = 7;
